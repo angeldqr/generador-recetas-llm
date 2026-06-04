@@ -17,14 +17,6 @@ const errorMessage = ref('')
 const successMessage = ref('')
 
 const isRegister = computed(() => mode.value === 'register')
-const title = computed(() =>
-  isRegister.value ? 'Crear cuenta' : 'Entrar al inventario',
-)
-const helper = computed(() =>
-  isRegister.value
-    ? 'Registra tu usuario para guardar ingredientes y recetas.'
-    : 'Inicia sesión para continuar con tu inventario personal.',
-)
 const submitLabel = computed(() =>
   isLoading.value
     ? 'Procesando'
@@ -45,11 +37,11 @@ function validateForm() {
   }
 
   if (!email.value.includes('@') || email.value.trim().length < 5) {
-    return 'Escribe un correo válido.'
+    return 'Escribe un correo valido.'
   }
 
   if (password.value.length < 6) {
-    return 'La contraseña debe tener al menos 6 caracteres.'
+    return 'La contrasena debe tener al menos 6 caracteres.'
   }
 
   return ''
@@ -74,7 +66,7 @@ async function submitForm() {
         email: email.value.trim(),
         password: password.value,
       })
-      successMessage.value = 'Cuenta creada. Ahora puedes iniciar sesión.'
+      successMessage.value = 'Cuenta creada. Ahora puedes iniciar sesion.'
       mode.value = 'login'
       password.value = ''
       return
@@ -88,7 +80,7 @@ async function submitForm() {
     emit('authenticated', data.access_token)
   } catch (error) {
     errorMessage.value =
-      error instanceof Error ? error.message : 'Ocurrió un error inesperado.'
+      error instanceof Error ? error.message : 'Ocurrio un error inesperado.'
   } finally {
     isLoading.value = false
   }
@@ -96,13 +88,7 @@ async function submitForm() {
 </script>
 
 <template>
-  <article class="auth-panel" aria-labelledby="auth-title">
-    <div class="auth-panel__copy">
-      <p class="workspace__label">Acceso</p>
-      <h2 id="auth-title">{{ title }}</h2>
-      <p>{{ helper }}</p>
-    </div>
-
+  <article class="auth-panel" aria-label="Formulario de acceso">
     <div class="auth-tabs" role="tablist" aria-label="Modo de acceso">
       <button
         class="auth-tabs__button"
@@ -110,7 +96,7 @@ async function submitForm() {
         type="button"
         @click="setMode('login')"
       >
-        Iniciar sesión
+        Iniciar sesion
       </button>
       <button
         class="auth-tabs__button"
@@ -125,7 +111,7 @@ async function submitForm() {
     <form class="auth-form" @submit.prevent="submitForm">
       <label v-if="isRegister">
         <span>Nombre</span>
-        <input v-model="name" autocomplete="name" name="name" placeholder="Ángel" />
+        <input v-model="name" autocomplete="name" name="name" placeholder="Tu nombre" />
       </label>
 
       <label>
@@ -134,30 +120,30 @@ async function submitForm() {
           v-model="email"
           autocomplete="email"
           name="email"
-          placeholder="angel@email.com"
+          placeholder="tu@correo.com"
           type="email"
         />
       </label>
 
       <label>
-        <span>Contraseña</span>
+        <span>Contrasena</span>
         <input
           v-model="password"
           :autocomplete="isRegister ? 'new-password' : 'current-password'"
           name="password"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Minimo 6 caracteres"
           type="password"
         />
       </label>
 
-      <p v-if="errorMessage" class="form-message form-message--error">
+      <p v-if="errorMessage" class="form-message form-message--error" role="alert">
         {{ errorMessage }}
       </p>
-      <p v-if="successMessage" class="form-message form-message--success">
+      <p v-if="successMessage" class="form-message form-message--success" role="status">
         {{ successMessage }}
       </p>
 
-      <button class="pill-button auth-form__submit" :disabled="isLoading" type="submit">
+      <button class="auth-form__submit" :disabled="isLoading" type="submit">
         {{ submitLabel }}
       </button>
     </form>

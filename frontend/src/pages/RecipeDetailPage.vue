@@ -94,7 +94,12 @@ function goBack() {
       La receta solicitada no existe o ya no está disponible.
     </p>
 
-    <article v-else class="recipe-detail" :data-blendy-to="`recipe-card-${currentRecipe.id}`">
+    <article
+      v-else
+      class="recipe-detail"
+      :data-blendy-to="`recipe-card-${currentRecipe.id}`"
+      :style="{ viewTransitionName: `recipe-card-${currentRecipe.id}` }"
+    >
       <header class="recipe-detail__header">
         <p class="recipe-detail__eyebrow">Receta guardada</p>
         <h1 class="recipe-detail__title">{{ currentRecipe.nombre_plato }}</h1>
@@ -168,35 +173,40 @@ function goBack() {
 
 .recipe-detail {
   margin-top: 20px;
-  border: 1px solid var(--color-line);
-  border-radius: 28px;
-  padding: 32px;
+  border: 1px solid rgb(15 36 24 / 0.08);
+  border-radius: 32px;
+  padding: 36px;
   background:
-    linear-gradient(160deg, rgb(255 255 255 / 0.96), rgb(246 247 242 / 0.94)),
-    #ffffff;
-  box-shadow: var(--shadow-soft);
+    linear-gradient(160deg, rgb(254 253 248 / 0.96), rgb(244 241 232 / 0.92)),
+    var(--color-panel);
+  box-shadow: var(--shadow-card);
   transform-origin: top center;
 }
 
 .recipe-detail__header {
   display: grid;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
 .recipe-detail__eyebrow {
   margin: 0;
   color: var(--color-accent);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .recipe-detail__title {
   margin: 0;
-  font-size: clamp(2.4rem, 6vw, 4.6rem);
-  line-height: 0.95;
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
 }
 
 .recipe-detail__meta {
@@ -206,36 +216,88 @@ function goBack() {
 }
 
 .recipe-detail__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border-radius: var(--radius-button);
-  padding: 6px 12px;
+  padding: 7px 14px;
   color: var(--color-accent-strong);
-  background: rgb(38 116 81 / 0.1);
+  background: var(--color-accent-soft);
+  font-family: "DM Sans", system-ui;
   font-size: 0.82rem;
-  font-weight: 850;
+  font-weight: 600;
+  letter-spacing: -0.005em;
 }
 
 .recipe-detail__grid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 24px;
+  gap: 28px;
   border-top: 1px solid var(--color-line);
-  padding-top: 24px;
+  padding-top: 28px;
 }
 
 .recipe-detail__section h2 {
-  margin: 0 0 10px;
-  font-size: 1.05rem;
-  letter-spacing: 0;
+  margin: 0 0 12px;
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
 }
 
 .recipe-detail__section ul,
 .recipe-detail__section ol {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   margin: 0;
-  padding-left: 22px;
-  color: var(--color-muted);
-  line-height: 1.6;
+  padding: 0;
+  list-style: none;
+  color: var(--color-ink-soft);
+  line-height: 1.55;
+  font-size: 0.96rem;
+}
+
+.recipe-detail__section ul li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgb(15 36 24 / 0.06);
+  border-radius: 14px;
+  background: var(--color-soft);
+}
+
+.recipe-detail__section ol li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.recipe-detail__section ol li:last-child {
+  border-bottom: 0;
+}
+
+.recipe-detail__section ol li::before {
+  content: counter(list-item);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-panel);
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.recipe-detail__section ol {
+  counter-reset: list-item;
 }
 
 .recipe-detail__loading {

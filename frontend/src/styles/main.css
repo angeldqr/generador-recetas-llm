@@ -1,32 +1,51 @@
 :root {
   color-scheme: light;
   font-family:
+    "DM Sans",
     ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  color: #12231a;
-  background: #f6f7f2;
+  color: var(--color-ink);
+  background: var(--color-soft);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings:
+    "ss01" on,
+    "cv11" on;
 
-  --color-ink: #12231a;
-  --color-muted: #526258;
-  --color-soft: #f6f7f2;
-  --color-panel: #ffffff;
-  --color-line: #dfe5dc;
+  /* Forest palette: deep green + bone + amber accent (NOT beige+brass). */
+  --color-ink: #0f2418;
+  --color-ink-soft: #1b3a2a;
+  --color-muted: #56665b;
+  --color-soft: #f4f1e8;
+  --color-soft-2: #ebe7d8;
+  --color-panel: #fefdf8;
+  --color-line: #d8d4c2;
   --color-accent: #267451;
   --color-accent-strong: #155c3c;
+  --color-accent-soft: rgb(38 116 81 / 0.12);
+  --color-amber: #c2873a;
+  --color-amber-soft: rgb(194 135 58 / 0.16);
   --color-danger: #a33d3d;
-  --shadow-soft: 0 20px 70px rgb(32 54 41 / 0.12);
-  --radius-card: 24px;
+
+  /* Soft, glassy shadows. Tinted to background, never pure black. */
+  --shadow-soft: 0 30px 80px -20px rgb(15 36 24 / 0.18);
+  --shadow-card: 0 18px 40px -16px rgb(15 36 24 / 0.14);
+  --shadow-pop: 0 38px 100px -10px rgb(15 36 24 / 0.32);
+
+  --radius-card: 28px;
   --radius-button: 999px;
+  --radius-pill: 14px;
+
+  /* Custom easings — punchy, never linear-feeling. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-elastic: cubic-bezier(0.38, 0.49, 0, 1);
 }
 
 * {
@@ -42,6 +61,7 @@ body {
   min-width: 320px;
   min-height: 100dvh;
   margin: 0;
+  font-family: inherit;
 }
 
 button,
@@ -53,12 +73,16 @@ textarea {
 
 button {
   cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: inherit;
 }
 
 button:disabled,
 input:disabled,
 textarea:disabled {
   cursor: not-allowed;
+  opacity: 0.65;
 }
 
 a {
@@ -66,12 +90,17 @@ a {
   text-decoration: none;
 }
 
+input,
+textarea {
+  font-family: inherit;
+}
+
 #app {
   min-height: 100dvh;
 }
 
 ::selection {
-  color: #ffffff;
+  color: var(--color-panel);
   background: var(--color-accent);
 }
 
@@ -83,5 +112,113 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* === Shared pill button (used across panels) === */
+.pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-button);
+  color: var(--color-panel);
+  background:
+    linear-gradient(180deg, #3a8a64, var(--color-accent) 78%),
+    var(--color-accent);
+  font-family: "DM Sans", system-ui;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 18px 40px -12px rgb(38 116 81 / 0.5);
+  cursor: pointer;
+  transition:
+    transform 180ms var(--ease-out),
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.pill-button:active {
+  transform: scale(0.97);
+}
+
+.pill-button--light {
+  color: var(--color-ink);
+  background: var(--color-panel);
+  box-shadow:
+    inset 0 0 0 1px rgb(15 36 24 / 0.1),
+    0 10px 24px -16px rgb(15 36 24 / 0.18);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pill-button:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 22px 50px -12px rgb(38 116 81 / 0.55);
+  }
+
+  .pill-button--light:hover {
+    background: var(--color-soft-2);
+  }
+}
+
+.workspace__label {
+  color: var(--color-accent-strong);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+/* === View Transitions API: shared element morphs === */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-elastic);
+}
+
+::view-transition-old(root) {
+  animation-name: vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: vt-fade-in;
+}
+
+::view-transition-group(*) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-elastic);
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+    filter: blur(2px);
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
   }
 }

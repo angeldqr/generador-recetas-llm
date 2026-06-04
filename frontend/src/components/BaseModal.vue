@@ -18,9 +18,12 @@ const emit = defineEmits<{
 }>()
 
 const dialog = ref<HTMLDialogElement | null>(null)
+const ELASTIC_EASE = 'M0,0 C0.4,0 0.2,1 0.6,1 0.8,1 1,1 1,1'
+
 const prettyModal = new PrettyModal({
-  anchor: 'center',
-  duration: 0.5,
+  anchor: 'origin',
+  duration: 0.7,
+  ease: ELASTIC_EASE,
   respectReducedMotion: true,
 })
 
@@ -50,11 +53,14 @@ async function openDialog() {
   if (trigger) {
     prettyModal.open(dialog.value, {
       trigger,
-      anchor: 'center',
-      duration: 0.5,
+      anchor: 'origin',
+      duration: 0.7,
     })
   } else {
-    prettyModal.open(dialog.value, { anchor: 'center', duration: 0.5 })
+    prettyModal.open(dialog.value, {
+      anchor: 'center',
+      duration: 0.7,
+    })
   }
 }
 
@@ -66,7 +72,7 @@ function closeDialog() {
     return
   }
 
-  prettyModal.close(dialog.value)
+  prettyModal.close(dialog.value, { duration: 0.4 })
 }
 
 function onCancel(event: Event) {
@@ -121,7 +127,7 @@ onBeforeUnmount(() => {
             aria-label="Cerrar modal"
             @click="closeDialog"
           >
-            x
+            ×
           </button>
         </header>
         <div class="base-modal__body">

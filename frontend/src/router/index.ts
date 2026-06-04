@@ -73,9 +73,36 @@ export const router = createRouter({
   routes,
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) return savedPosition
-    return { top: 0, behavior: 'smooth' }
+    return { top: 0 }
   },
 })
+
+function supportsViewTransitions(): boolean {
+  if (typeof document === 'undefined') return false
+  return typeof (document as Document & { startViewTransition?: unknown })
+    .startViewTransition === 'function'
+}
+
+/**
+ * Wraps a navigation in the browser's View Transitions API when supported.
+ * Falls back to a plain navigation otherwise (Vue's <Transition> handles the morph).
+ */
+function withViewTransition(performNavigation: () => void | Promise<void>) {
+  if (!supportsViewTransitions()) {
+    void performNavigation()
+    return
+  }
+  const transition = (
+    document as Document & {
+      startViewTransition: (cb: () => void) => { finished: Promise<void> }
+    }
+  ).startViewTransition(() => {
+    void performNavigation()
+  })
+  void transition.finished.catch(() => {
+    /* swallow; the page has already swapped */
+  })
+}
 
 router.beforeEach((to: RouteLocationNormalized) => {
   const { isAuthenticated } = useAuthSession()
@@ -90,6 +117,14 @@ router.beforeEach((to: RouteLocationNormalized) => {
 
   return true
 })
+
+const originalPush = router.push.bind(router)
+router.push = ((target: Parameters<typeof originalPush>[0]) => {
+  withViewTransition(() => {
+    void originalPush(target)
+  })
+  return Promise.resolve()
+}) as typeof router.push
 
 router.afterEach((to) => {
   const title = to.meta.title

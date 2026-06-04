@@ -1,6 +1,6 @@
 .inventory-panel {
   display: grid;
-  gap: 22px;
+  gap: 28px;
 }
 
 .inventory-panel__header {
@@ -12,60 +12,87 @@
 
 .inventory-panel__header h2 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 4.8rem);
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  font-weight: 700;
   line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.inventory-panel__header p {
+  margin: 0 0 8px;
+  color: var(--color-accent);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .inventory-count {
   flex: 0 0 auto;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgb(15 36 24 / 0.08);
   border-radius: var(--radius-button);
-  padding: 10px 14px;
+  padding: 10px 16px;
   color: var(--color-accent-strong);
-  background: #ffffff;
-  font-weight: 850;
+  background: var(--color-panel);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 24px -16px rgb(15 36 24 / 0.18);
 }
 
 .ingredient-form {
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr) auto auto;
+  grid-template-columns: minmax(180px, 1.6fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr) auto auto;
   gap: 12px;
   align-items: end;
-  border: 1px solid rgb(18 35 26 / 0.08);
-  border-radius: var(--radius-card);
-  padding: 18px;
-  background: rgb(255 255 255 / 0.86);
-  box-shadow: var(--shadow-soft);
+  border: 1px solid rgb(15 36 24 / 0.08);
+  border-radius: 28px;
+  padding: 22px;
+  background:
+    linear-gradient(160deg, rgb(254 253 248 / 0.96), rgb(244 241 232 / 0.92)),
+    var(--color-panel);
+  box-shadow: var(--shadow-card);
 }
 
 .ingredient-form label {
   display: grid;
   gap: 8px;
   color: var(--color-ink);
-  font-weight: 820;
-}
-
-.ingredient-form span {
-  font-size: 0.9rem;
+  font-family: "DM Sans", system-ui;
+  font-weight: 600;
+  font-size: 0.88rem;
+  letter-spacing: -0.005em;
 }
 
 .ingredient-form input {
-  min-height: 48px;
+  min-height: 50px;
   width: 100%;
-  border: 1px solid var(--color-line);
-  border-radius: 18px;
-  padding: 0 14px;
+  border: 1px solid rgb(15 36 24 / 0.1);
+  border-radius: 16px;
+  padding: 0 16px;
   color: var(--color-ink);
-  background: #ffffff;
+  background: var(--color-soft);
+  font-family: "DM Sans", system-ui;
+  font-size: 0.96rem;
   outline: none;
   transition:
     border-color 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    background 180ms ease;
 }
 
 .ingredient-form input:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px rgb(38 116 81 / 0.12);
+  background: var(--color-panel);
+  box-shadow: 0 0 0 4px rgb(38 116 81 / 0.16);
+}
+
+.ingredient-form input::placeholder {
+  color: var(--color-muted);
+  font-weight: 500;
 }
 
 .ingredient-form__button {
@@ -75,34 +102,44 @@
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .ingredient-card {
-  min-height: 170px;
+  min-height: 180px;
   display: grid;
   align-content: space-between;
   gap: 22px;
-  border: 1px solid rgb(18 35 26 / 0.08);
-  border-radius: var(--radius-card);
-  padding: 20px;
-  background: #ffffff;
-  box-shadow: 0 12px 34px rgb(18 35 26 / 0.08);
+  border: 1px solid rgb(15 36 24 / 0.08);
+  border-radius: 24px;
+  padding: 22px;
+  background: var(--color-panel);
+  box-shadow: var(--shadow-card);
+  transition:
+    transform 200ms var(--ease-out),
+    box-shadow 200ms ease;
 }
 
 .ingredient-card > span {
   width: fit-content;
   border-radius: var(--radius-button);
-  padding: 7px 10px;
+  padding: 7px 12px;
   color: var(--color-accent-strong);
-  background: rgb(38 116 81 / 0.1);
-  font-size: 0.82rem;
-  font-weight: 850;
+  background: var(--color-accent-soft);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .ingredient-card strong {
-  font-size: clamp(1.35rem, 3vw, 2.1rem);
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
 }
 
 .ingredient-card__actions {
@@ -112,17 +149,20 @@
 }
 
 .ingredient-card__actions button {
-  min-height: 36px;
-  border: 1px solid var(--color-line);
+  min-height: 38px;
+  border: 1px solid rgb(15 36 24 / 0.1);
   border-radius: var(--radius-button);
-  padding: 0 12px;
+  padding: 0 14px;
   color: var(--color-ink);
-  background: #ffffff;
-  font-weight: 800;
+  background: var(--color-panel);
+  font-family: "DM Sans", system-ui;
+  font-weight: 600;
+  font-size: 0.84rem;
   transition:
-    transform 150ms var(--ease-out),
+    transform 160ms var(--ease-out),
     border-color 180ms ease,
-    color 180ms ease;
+    color 180ms ease,
+    background 180ms ease;
 }
 
 .ingredient-card__actions button:last-child {
@@ -130,7 +170,7 @@
 }
 
 .ingredient-card__actions button:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .ingredient-card--skeleton span,
@@ -138,7 +178,7 @@
 .ingredient-card--skeleton div {
   min-height: 18px;
   border-radius: var(--radius-button);
-  background: linear-gradient(90deg, #edf2eb, #f8faf5, #edf2eb);
+  background: linear-gradient(90deg, #ebe7d8, #f4f1e8, #ebe7d8);
   background-size: 200% 100%;
   animation: skeleton-shift 1.2s linear infinite;
 }
@@ -149,21 +189,26 @@
 
 .inventory-empty {
   border: 1px dashed rgb(38 116 81 / 0.32);
-  border-radius: var(--radius-card);
-  padding: 30px;
-  background: rgb(255 255 255 / 0.62);
+  border-radius: 24px;
+  padding: 36px;
+  background: rgb(254 253 248 / 0.7);
+  text-align: center;
 }
 
 .inventory-empty h3 {
-  margin: 0;
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  margin: 0 0 8px;
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .inventory-empty p:last-child {
-  max-width: 44ch;
+  max-width: 50ch;
+  margin: 0 auto;
   color: var(--color-muted);
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 @keyframes skeleton-shift {
@@ -173,9 +218,15 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .ingredient-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 50px -16px rgb(15 36 24 / 0.18);
+  }
+
   .ingredient-card__actions button:hover {
-    border-color: rgb(38 116 81 / 0.28);
+    border-color: rgb(38 116 81 / 0.3);
     color: var(--color-accent-strong);
+    background: var(--color-accent-soft);
   }
 
   .ingredient-card__actions button:last-child:hover {
@@ -208,7 +259,7 @@
 @media (max-width: 560px) {
   .ingredient-form {
     grid-template-columns: 1fr;
-    padding: 14px;
+    padding: 16px;
   }
 
   .ingredient-form__button {

@@ -119,6 +119,7 @@ onMounted(loadRecipes)
         :key="recipe.id"
         class="history-card history-card--openable"
         :data-blendy-from="`recipe-card-${recipe.id}`"
+        :style="{ viewTransitionName: `recipe-card-${recipe.id}` }"
         role="button"
         tabindex="0"
         :aria-label="`Abrir detalle de ${recipe.nombre_plato}`"

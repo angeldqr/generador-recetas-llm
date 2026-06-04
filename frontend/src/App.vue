@@ -16,14 +16,24 @@ function shouldReduceMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+function supportsViewTransitions(): boolean {
+  if (typeof document === 'undefined') return false
+  return typeof (document as Document & { startViewTransition?: unknown })
+    .startViewTransition === 'function'
+}
+
 function onPageEnter(el: Element, done: () => void) {
+  // If the browser is doing the View Transition, let it own the swap.
+  if (supportsViewTransitions()) {
+    done()
+    return
+  }
   const node = el as HTMLElement
   if (shouldReduceMotion()) {
     gsap.set(node, { autoAlpha: 1, y: 0, filter: 'blur(0px)' })
     done()
     return
   }
-
   gsap.fromTo(
     node,
     { autoAlpha: 0, y: 14, filter: 'blur(2px)' },
@@ -31,7 +41,7 @@ function onPageEnter(el: Element, done: () => void) {
       autoAlpha: 1,
       y: 0,
       filter: 'blur(0px)',
-      duration: 0.32,
+      duration: 0.36,
       ease: 'power3.out',
       clearProps: 'filter',
       onComplete: done,
@@ -40,15 +50,18 @@ function onPageEnter(el: Element, done: () => void) {
 }
 
 function onPageLeave(el: Element, done: () => void) {
+  if (supportsViewTransitions()) {
+    done()
+    return
+  }
   const node = el as HTMLElement
   if (shouldReduceMotion()) {
     done()
     return
   }
-
   gsap.to(node, {
     autoAlpha: 0,
-    y: -10,
+    y: -8,
     filter: 'blur(2px)',
     duration: 0.18,
     ease: 'power2.out',
@@ -66,7 +79,7 @@ function onPageLeave(el: Element, done: () => void) {
       <RouterView v-slot="{ Component }">
         <Transition
           :css="false"
-          mode="in-out"
+          mode="out-in"
           @enter="onPageEnter"
           @leave="onPageLeave"
         >
@@ -79,14 +92,14 @@ function onPageLeave(el: Element, done: () => void) {
 
 <style>
 .page {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
   padding: 32px 0 64px;
 }
 
 @media (max-width: 820px) {
   .page {
-    width: min(100% - 24px, 680px);
+    width: min(100% - 24px, 720px);
     padding-top: 16px;
   }
 }

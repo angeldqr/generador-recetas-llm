@@ -12,10 +12,11 @@
     "@vitejs/plugin-vue": "^6.0.2",
     "blendy": "^0.0.1",
     "gsap": "^3.15.0",
+    "prettier-modals": "^0.1.1",
     "typescript": "^5.9.3",
     "vite": "^7.2.7",
     "vue": "^3.5.25",
+    "vue-router": "^4.6.4",
     "vue-tsc": "^3.1.8"
-  },
-  "devDependencies": {}
+  }
 }

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRecipes } from '../services/api'
+import { useStaggerReveal } from '../composables/useStaggerReveal'
 import type { Recipe } from '../types/api'
 
 const props = defineProps<{
@@ -13,6 +14,15 @@ const router = useRouter()
 const recipes = ref<Recipe[]>([])
 const isLoading = ref(true)
 const errorMessage = ref('')
+const pageRoot = ref<HTMLElement | null>(null)
+
+useStaggerReveal({
+  root: pageRoot,
+  selector: '.recipe-detail__header, .recipe-detail__section',
+  delay: 0.32,
+  stagger: 0.08,
+  duration: 0.55,
+})
 
 const currentRecipe = computed<Recipe | null>(() => {
   const id = Number(props.id)
@@ -56,7 +66,7 @@ function goBack() {
 </script>
 
 <template>
-  <article class="page page--recipe-detail" data-route="recipe-detail">
+  <article ref="pageRoot" class="page page--recipe-detail" data-route="recipe-detail">
     <button
       class="recipe-detail__back"
       type="button"

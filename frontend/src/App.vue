@@ -1,12 +1,59 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
+import gsap from 'gsap'
 import AppShell from './components/AppShell.vue'
 import { useAuthSession } from './composables/useAuthSession'
 
 const { isAuthenticated, clearSession } = useAuthSession()
+const route = useRoute()
 
 function handleLogout() {
   clearSession()
+}
+
+function shouldReduceMotion() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function onPageEnter(el: Element, done: () => void) {
+  const node = el as HTMLElement
+  if (shouldReduceMotion()) {
+    gsap.set(node, { autoAlpha: 1, y: 0, filter: 'blur(0px)' })
+    done()
+    return
+  }
+
+  gsap.fromTo(
+    node,
+    { autoAlpha: 0, y: 18, filter: 'blur(2px)' },
+    {
+      autoAlpha: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      duration: 0.42,
+      ease: 'power3.out',
+      clearProps: 'filter',
+      onComplete: done,
+    },
+  )
+}
+
+function onPageLeave(el: Element, done: () => void) {
+  const node = el as HTMLElement
+  if (shouldReduceMotion()) {
+    done()
+    return
+  }
+
+  gsap.to(node, {
+    autoAlpha: 0,
+    y: -10,
+    filter: 'blur(2px)',
+    duration: 0.18,
+    ease: 'power2.out',
+    onComplete: done,
+  })
 }
 </script>
 
@@ -16,10 +63,15 @@ function handleLogout() {
     @logout="handleLogout"
   >
     <main class="page" data-app-root>
-      <RouterView v-slot="{ Component, route }">
-        <transition name="page" mode="out-in" appear>
+      <RouterView v-slot="{ Component }">
+        <Transition
+          :css="false"
+          mode="out-in"
+          @enter="onPageEnter"
+          @leave="onPageLeave"
+        >
           <component :is="Component" :key="route.fullPath" />
-        </transition>
+        </Transition>
       </RouterView>
     </main>
   </AppShell>
@@ -36,41 +88,6 @@ function handleLogout() {
   .page {
     width: min(100% - 24px, 680px);
     padding-top: 16px;
-  }
-}
-
-.page-enter-active,
-.page-leave-active {
-  transition:
-    opacity 280ms var(--ease-out),
-    transform 320ms var(--ease-out),
-    filter 280ms ease;
-  will-change: opacity, transform, filter;
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(14px);
-  filter: blur(2px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-  filter: blur(2px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .page-enter-active,
-  .page-leave-active {
-    transition: opacity 0.01ms linear;
-    filter: none !important;
-  }
-
-  .page-enter-from,
-  .page-leave-to {
-    transform: none;
-    filter: none;
   }
 }
 </style>

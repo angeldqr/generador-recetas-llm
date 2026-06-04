@@ -2,21 +2,16 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseModal from '../components/BaseModal.vue'
+import { useAppData } from '../composables/useAppData'
 import { useAuthSession } from '../composables/useAuthSession'
-import type { Ingredient, Recipe } from '../types/api'
+import { useHeroReveal } from '../composables/useHeroReveal'
 
-defineProps<{
-  ingredients: Ingredient[]
-  recipes: Recipe[]
-}>()
-
-const emit = defineEmits<{
-  navigate: [view: string]
-}>()
-
+const { ingredients, recipes } = useAppData()
 const { isAuthenticated } = useAuthSession()
 const router = useRouter()
 const isFlowModalOpen = ref(false)
+
+useHeroReveal()
 
 const heroEyebrow = 'Proyecto final'
 const heroTitle = computed(() =>

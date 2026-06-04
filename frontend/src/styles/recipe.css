@@ -61,6 +61,10 @@
   font-size: 0.82rem;
 }
 
+.recipe-generator > .form-message {
+  grid-column: 1 / -1;
+}
+
 .recipe-card {
   grid-column: 1 / -1;
   display: grid;
@@ -144,6 +148,33 @@
 
 .recipe-card--loading strong {
   min-height: 44px;
+}
+
+.recipe-card__loading-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe-card__loading-steps li {
+  width: fit-content;
+  border-radius: var(--radius-button);
+  padding: 7px 12px;
+  color: var(--color-muted);
+  background: rgb(15 36 24 / 0.06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.recipe-card--generated {
+  border-color: rgb(38 116 81 / 0.16);
+  background:
+    linear-gradient(145deg, rgb(254 253 248 / 0.98), rgb(236 240 226 / 0.9)),
+    var(--color-panel);
 }
 
 .history-panel {

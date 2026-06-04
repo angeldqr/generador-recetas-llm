@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   loaded: [recipes: Recipe[]]
+  open: [recipe: Recipe]
 }>()
 
 const recipes = ref<Recipe[]>([])
@@ -20,6 +21,10 @@ const successMessage = ref('')
 function publishRecipes(nextRecipes: Recipe[]) {
   recipes.value = nextRecipes
   emit('loaded', nextRecipes)
+}
+
+function openRecipe(recipe: Recipe) {
+  emit('open', recipe)
 }
 
 function formatDate(value: string) {
@@ -109,7 +114,18 @@ onMounted(loadRecipes)
     </div>
 
     <div v-else-if="recipes.length" class="history-grid">
-      <article v-for="recipe in recipes" :key="recipe.id" class="history-card">
+      <article
+        v-for="recipe in recipes"
+        :key="recipe.id"
+        class="history-card history-card--openable"
+        :data-blendy-from="`recipe-card-${recipe.id}`"
+        role="button"
+        tabindex="0"
+        :aria-label="`Abrir detalle de ${recipe.nombre_plato}`"
+        @click="openRecipe(recipe)"
+        @keydown.enter.prevent="openRecipe(recipe)"
+        @keydown.space.prevent="openRecipe(recipe)"
+      >
         <header>
           <div>
             <span>{{ recipe.dificultad }} · {{ formatDate(recipe.fecha_creacion) }}</span>
@@ -136,14 +152,14 @@ onMounted(loadRecipes)
           </ol>
         </section>
 
-        <footer>
+        <footer @click.stop>
           <div class="rating-row" aria-label="Calificar receta">
             <button
               v-for="star in 5"
               :key="star"
               :disabled="busyRecipeId === recipe.id"
               type="button"
-              @click="submitRating(recipe, star)"
+              @click.stop="submitRating(recipe, star)"
             >
               {{ star }}
             </button>
@@ -152,7 +168,7 @@ onMounted(loadRecipes)
             class="history-card__delete"
             :disabled="busyRecipeId === recipe.id"
             type="button"
-            @click="removeRecipe(recipe)"
+            @click.stop="removeRecipe(recipe)"
           >
             Eliminar
           </button>

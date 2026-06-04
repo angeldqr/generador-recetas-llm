@@ -1,0 +1,42 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      blendy:
+        specifier: ^0.0.1
+        version: 0.0.1
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
+      prettier-modals:
+        specifier: ^0.1.1
+        version: 0.1.1(gsap@3.15.0)
+
+packages:
+
+  blendy@0.0.1:
+    resolution: {integrity: sha512-6zw2to19jBTF8HchX/gLgVav9gLcV+oTxGJLCCNVMFHuUtF1FdUOP+AiL1lcVIJi8gRiY1NHhiVzgu8D2+qbig==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
+
+  prettier-modals@0.1.1:
+    resolution: {integrity: sha512-qUqeXtXOf7d6KtEWx1NdSUzMKrcoaVHafiDJlEUMuC+CvSejpXXaarzZLilX2KxVsfkaOvbSd4KnqOoXSGbbFw==}
+    peerDependencies:
+      gsap: '>=3.12'
+
+snapshots:
+
+  blendy@0.0.1: {}
+
+  gsap@3.15.0: {}
+
+  prettier-modals@0.1.1(gsap@3.15.0):
+    dependencies:
+      gsap: 3.15.0

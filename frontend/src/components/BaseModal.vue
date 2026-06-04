@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
   <dialog
     ref="dialog"
     class="base-modal"
-    :data-blendy-to="blendyId"
+    :data-blendy-to="blendyId || undefined"
     role="document"
     @cancel="onCancel"
     @close="onClose"

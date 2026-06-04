@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "blendy": "^0.0.1",
+    "gsap": "^3.15.0",
+    "prettier-modals": "^0.1.1"
+  }
+}

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useAuthSession } from '../composables/useAuthSession'
-import { useBlendyOnMount } from '../composables/useBlendy'
 import { useStaggerReveal } from '../composables/useStaggerReveal'
 import AuthPanel from '../components/AuthPanel.vue'
 import { useRouter } from 'vue-router'
@@ -8,22 +7,19 @@ import { ref } from 'vue'
 
 const { isAuthenticated, setToken } = useAuthSession()
 const router = useRouter()
-const isReady = ref(false)
 const pageRoot = ref<HTMLElement | null>(null)
 
 if (isAuthenticated.value) {
   void router.replace('/inventario')
-} else {
-  isReady.value = true
-  useBlendyOnMount({ id: 'auth-cta' })
-  useStaggerReveal({
-    root: pageRoot,
-    selector: '.auth-card',
-    delay: 0.3,
-    stagger: 0.08,
-    duration: 0.55,
-  })
 }
+
+useStaggerReveal({
+  root: pageRoot,
+  selector: '.auth-card',
+  delay: 0.15,
+  stagger: 0.08,
+  duration: 0.55,
+})
 
 function handleAuthenticated(token: string) {
   setToken(token)
@@ -35,12 +31,11 @@ function handleAuthenticated(token: string) {
 
 <template>
   <article
-    v-if="isReady"
     ref="pageRoot"
     class="page page--auth"
     data-route="auth"
   >
-    <div class="auth-card" data-blendy-to="auth-cta" data-reveal>
+    <div class="auth-card" data-reveal>
       <p class="auth-card__eyebrow">Acceso</p>
       <h1 class="auth-card__title">Bienvenido de vuelta</h1>
       <p class="auth-card__hint">
@@ -69,7 +64,6 @@ function handleAuthenticated(token: string) {
     var(--color-panel);
   box-shadow: var(--shadow-card);
   transform-origin: top left;
-  view-transition-name: auth-cta;
 }
 
 .auth-card__eyebrow {

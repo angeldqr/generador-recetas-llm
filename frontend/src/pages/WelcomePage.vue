@@ -1,15 +1,37 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
-import BaseModal from '../components/BaseModal.vue'
 import { useAppData } from '../composables/useAppData'
 import { useAuthSession } from '../composables/useAuthSession'
+import { useBlendy } from '../composables/useBlendy'
 
 const { ingredients, recipes } = useAppData()
 const { isAuthenticated } = useAuthSession()
 const router = useRouter()
-const isFlowModalOpen = ref(false)
+const blendy = useBlendy()
+
+const emit = defineEmits<{
+  'open-auth': [blendyId: string]
+}>()
+
+/* ── Flow modal state (Blendy) ── */
+const showFlowModal = ref(false)
+
+async function openFlowModal() {
+  showFlowModal.value = true
+  await nextTick()
+  blendy.update()
+  blendy.toggle('flow-info')
+}
+
+function closeFlowModal() {
+  blendy.untoggle('flow-info', () => {
+    showFlowModal.value = false
+  })
+}
+
+/* ── Hero state ── */
 const heroRoot = ref<HTMLElement | null>(null)
 const heroLetters = 'cocina'.split('')
 
@@ -23,20 +45,16 @@ const heroSubtitle = computed(() =>
 const primaryLabel = computed(() =>
   isAuthenticated.value ? 'Ir al inventario' : 'Empezar ahora',
 )
-const secondaryLabel = 'Ver como funciona'
 
 function goToPrimary() {
   if (isAuthenticated.value) {
     void router.push({ name: 'inventory' })
     return
   }
-  void router.push({ name: 'auth' })
+  emit('open-auth', 'auth-cta')
 }
 
-function openFlowModal() {
-  isFlowModalOpen.value = true
-}
-
+/* ── Entrance animation ── */
 function playEntrance() {
   if (!heroRoot.value) return
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -48,18 +66,14 @@ function playEntrance() {
     return
   }
 
-  const ctx = gsap.context(() => {
+  gsap.context(() => {
     const letters = gsap.utils.toArray<HTMLElement>('.hero-letter')
     gsap.fromTo(
       letters,
       { autoAlpha: 0, y: 80, rotateX: -60 },
       {
-        autoAlpha: 1,
-        y: 0,
-        rotateX: 0,
-        duration: 1.0,
-        ease: 'expo.out',
-        stagger: 0.05,
+        autoAlpha: 1, y: 0, rotateX: 0,
+        duration: 1.0, ease: 'expo.out', stagger: 0.05,
       },
     )
     gsap.fromTo(
@@ -79,36 +93,26 @@ function playEntrance() {
     )
     gsap.fromTo(
       '.hero-summary',
+      { autoAlpha: 0, y: 28, scale: 0.94, filter: 'blur(4px)' },
       {
-        autoAlpha: 0,
-        y: 28,
-        scale: 0.94,
-        filter: 'blur(4px)',
-      },
-      {
-        autoAlpha: 1,
-        y: 0,
-        scale: 1,
-        filter: 'blur(0px)',
-        duration: 0.9,
-        ease: 'expo.out',
-        delay: 0.85,
+        autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)',
+        duration: 0.9, ease: 'expo.out', delay: 0.85,
       },
     )
   }, heroRoot)
-  return () => ctx.revert()
 }
 
-import { onMounted } from 'vue'
 onMounted(() => {
   playEntrance()
+  // Rescan blendy sources after mount (page is lazy-loaded)
+  blendy.update()
 })
 </script>
 
 <template>
   <article
     ref="heroRoot"
-    class="page page--welcome"
+    class="welcome-root"
     data-route="welcome"
   >
     <section class="welcome-hero">
@@ -123,7 +127,6 @@ onMounted(() => {
             v-for="(letter, i) in heroLetters"
             :key="`${letter}-${i}`"
             class="hero-letter"
-            :data-blendy-from="i === 0 ? 'hero-cta-source' : undefined"
             :aria-hidden="true"
           >
             {{ letter }}
@@ -136,34 +139,36 @@ onMounted(() => {
           <button
             class="cta cta--primary"
             type="button"
-            :data-blendy-from="`hero-cta-source`"
+            data-blendy-from="auth-cta"
             @click="goToPrimary"
           >
-            <span class="cta__label">{{ primaryLabel }}</span>
-            <span class="cta__arrow" aria-hidden="true">
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
-                <path
-                  d="M3 8H13M13 8L8.5 3.5M13 8L8.5 12.5"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+            <span class="cta__inner">
+              <span class="cta__label">{{ primaryLabel }}</span>
+              <span class="cta__arrow" aria-hidden="true">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+                  <path
+                    d="M3 8H13M13 8L8.5 3.5M13 8L8.5 12.5"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
             </span>
           </button>
           <button
             class="cta cta--ghost"
             type="button"
-            data-blendy-from="flow-modal"
+            data-blendy-from="flow-info"
             @click="openFlowModal"
           >
-            <span class="cta__label">{{ secondaryLabel }}</span>
+            <span class="cta__label">Ver como funciona</span>
           </button>
         </div>
       </div>
 
-      <aside class="hero-summary" data-reveal aria-label="Resumen de la aplicación">
+      <aside class="hero-summary" data-reveal aria-label="Resumen de la aplicacion">
         <div class="hero-summary__header">
           <span class="hero-summary__label">Tu cocina</span>
           <span class="hero-summary__status">
@@ -186,36 +191,51 @@ onMounted(() => {
       </aside>
     </section>
 
-    <BaseModal
-      blendy-id="flow-modal"
-      :open="isFlowModalOpen"
-      title="Como funciona"
-      @close="isFlowModalOpen = false"
-    >
-      <ol class="modal-flow">
-        <li><span>1</span>Crear cuenta o iniciar sesion</li>
-        <li><span>2</span>Registrar ingredientes disponibles</li>
-        <li><span>3</span>Generar receta estructurada con IA</li>
-        <li><span>4</span>Guardar, calificar o eliminar del historial</li>
-      </ol>
-    </BaseModal>
+    <!-- Flow Modal — Blendy morph from "Ver como funciona" button -->
+    <Teleport to="body">
+      <template v-if="showFlowModal">
+        <div class="flow-backdrop" @click="closeFlowModal"></div>
+        <div class="flow-blendy-target" data-blendy-to="flow-info">
+          <div class="flow-modal-card">
+            <header class="flow-modal-header">
+              <h2>Como funciona</h2>
+              <button
+                class="flow-modal-close"
+                type="button"
+                aria-label="Cerrar"
+                @click="closeFlowModal"
+              >
+                ×
+              </button>
+            </header>
+            <ol class="modal-flow">
+              <li><span>1</span>Crear cuenta o iniciar sesion</li>
+              <li><span>2</span>Registrar ingredientes disponibles</li>
+              <li><span>3</span>Generar receta estructurada con IA</li>
+              <li><span>4</span>Guardar, calificar o eliminar del historial</li>
+            </ol>
+          </div>
+        </div>
+      </template>
+    </Teleport>
   </article>
 </template>
 
 <style scoped>
-.page--welcome {
+.welcome-root {
   width: min(1240px, 100%);
   margin: 0 auto;
   perspective: 1200px;
 }
 
 .welcome-hero {
-  min-height: min(720px, calc(100dvh - 140px));
+  height: calc(100dvh - 76px);
+  max-height: calc(100dvh - 76px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
   gap: 64px;
-  align-items: end;
-  padding: 60px 0 80px;
+  align-items: center;
+  overflow: hidden;
 }
 
 .welcome-hero__main {
@@ -223,6 +243,7 @@ onMounted(() => {
   gap: 28px;
 }
 
+/* ── Eyebrow ── */
 .hero-eyebrow {
   margin: 0;
   display: inline-flex;
@@ -250,6 +271,7 @@ onMounted(() => {
   box-shadow: 0 0 0 4px rgb(38 116 81 / 0.18);
 }
 
+/* ── Title ── */
 .hero-title {
   margin: 0;
   font-family: "Bricolage Grotesque", system-ui, serif;
@@ -286,6 +308,7 @@ onMounted(() => {
   text-shadow: 0 12px 32px rgb(38 116 81 / 0.32);
 }
 
+/* ── Subtitle ── */
 .hero-subtitle {
   margin: 0;
   max-width: 56ch;
@@ -296,6 +319,7 @@ onMounted(() => {
   letter-spacing: -0.01em;
 }
 
+/* ── CTA buttons ── */
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -319,6 +343,12 @@ onMounted(() => {
     box-shadow 200ms ease,
     background 200ms ease,
     color 200ms ease;
+}
+
+.cta__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .cta--primary {
@@ -376,6 +406,7 @@ onMounted(() => {
   }
 }
 
+/* ── Summary card ── */
 .hero-summary {
   display: grid;
   gap: 14px;
@@ -420,15 +451,9 @@ onMounted(() => {
 }
 
 @keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgb(38 116 81 / 0.45);
-  }
-  70% {
-    box-shadow: 0 0 0 12px rgb(38 116 81 / 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgb(38 116 81 / 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgb(38 116 81 / 0.45); }
+  70% { box-shadow: 0 0 0 12px rgb(38 116 81 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(38 116 81 / 0); }
 }
 
 .hero-summary__row {
@@ -466,14 +491,153 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+/* ── Flow modal (Blendy target) ── */
+.flow-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgb(15 36 24 / 0.35);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  animation: flow-fade-in 0.3s ease forwards;
+}
+
+@keyframes flow-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.flow-blendy-target {
+  position: fixed;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  z-index: 1000;
+}
+
+.flow-modal-card {
+  position: relative;
+  width: min(560px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid rgb(15 36 24 / 0.08);
+  border-radius: 32px;
+  background:
+    linear-gradient(160deg, rgb(254 253 248 / 0.98), rgb(244 241 232 / 0.94)),
+    var(--color-panel);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    0 48px 120px -20px rgb(15 36 24 / 0.35),
+    0 20px 50px -15px rgb(38 116 81 / 0.18);
+}
+
+.flow-modal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 0%, rgb(255 255 255 / 0.7), transparent 50%);
+  mix-blend-mode: lighten;
+}
+
+.flow-modal-header {
+  display: flex;
+  gap: 18px;
+  align-items: start;
+  justify-content: space-between;
+  padding: 28px 28px 0;
+}
+
+.flow-modal-header h2 {
+  margin: 0;
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+}
+
+.flow-modal-close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(15 36 24 / 0.1);
+  border-radius: 50%;
+  color: var(--color-ink);
+  background: var(--color-panel);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform 160ms var(--ease-out),
+    color 180ms ease,
+    background 180ms ease;
+}
+
+.flow-modal-close:hover {
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
+.flow-modal-close:active {
+  transform: scale(0.92);
+}
+
+.modal-flow {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 18px 28px 28px;
+  list-style: none;
+}
+
+.modal-flow li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  color: var(--color-ink);
+  background: var(--color-soft);
+  border: 1px solid rgb(15 36 24 / 0.06);
+  border-radius: 18px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+}
+
+.modal-flow span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-panel);
+  background:
+    linear-gradient(180deg, #3a8a64, var(--color-accent) 80%),
+    var(--color-accent);
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 8px 18px -8px rgb(38 116 81 / 0.5);
+}
+
+/* ── Responsive ── */
 @media (max-width: 980px) {
   .welcome-hero {
     grid-template-columns: 1fr;
     gap: 40px;
-    min-height: auto;
-    padding: 40px 0;
+    height: auto;
+    max-height: none;
   }
-
   .hero-summary {
     order: 2;
   }
@@ -483,7 +647,6 @@ onMounted(() => {
   .hero-title {
     font-size: clamp(4rem, 26vw, 8rem);
   }
-
   .cta {
     flex: 1;
     justify-content: center;

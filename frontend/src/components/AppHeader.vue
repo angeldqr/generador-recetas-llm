@@ -8,29 +8,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   logout: []
+  'open-auth': [blendyId: string]
 }>()
 
 const router = useRouter()
-
-type NavItem = {
-  id: string
-  label: string
-  to: { name: string }
-}
-
-const publicItems: NavItem[] = [
-  { id: 'auth', label: 'Iniciar sesion', to: { name: 'auth' } },
-]
-
-const privateItems: NavItem[] = [
-  { id: 'inventory', label: 'Inventario', to: { name: 'inventory' } },
-  { id: 'recipes', label: 'Recetas', to: { name: 'recipes' } },
-  { id: 'profile', label: 'Perfil', to: { name: 'profile' } },
-]
-
-const items = computed(() =>
-  props.isAuthenticated ? privateItems : publicItems,
-)
 
 const brandTarget = computed(() =>
   props.isAuthenticated ? { name: 'inventory' } : { name: 'welcome' },
@@ -57,15 +38,39 @@ async function navigateToBrand() {
     </button>
 
     <nav class="nav" aria-label="Principal">
-      <RouterLink
-        v-for="item in items"
-        :key="item.id"
-        :to="item.to"
-        class="nav__item"
-        active-class="nav__item--active"
-      >
-        {{ item.label }}
-      </RouterLink>
+      <template v-if="!isAuthenticated">
+        <button
+          class="nav__item"
+          type="button"
+          data-blendy-from="auth-nav"
+          @click="emit('open-auth', 'auth-nav')"
+        >
+          <span>Iniciar sesion</span>
+        </button>
+      </template>
+      <template v-else>
+        <RouterLink
+          :to="{ name: 'inventory' }"
+          class="nav__item"
+          active-class="nav__item--active"
+        >
+          Inventario
+        </RouterLink>
+        <RouterLink
+          :to="{ name: 'recipes' }"
+          class="nav__item"
+          active-class="nav__item--active"
+        >
+          Recetas
+        </RouterLink>
+        <RouterLink
+          :to="{ name: 'profile' }"
+          class="nav__item"
+          active-class="nav__item--active"
+        >
+          Perfil
+        </RouterLink>
+      </template>
     </nav>
 
     <div class="header-actions">
@@ -77,13 +82,15 @@ async function navigateToBrand() {
       >
         Cerrar sesion
       </button>
-      <RouterLink
+      <button
         v-else
-        :to="{ name: 'welcome' }"
         class="header-action"
+        type="button"
+        data-blendy-from="auth-header"
+        @click="emit('open-auth', 'auth-header')"
       >
-        Inicio
-      </RouterLink>
+        <span>Inicio</span>
+      </button>
     </div>
   </header>
 </template>

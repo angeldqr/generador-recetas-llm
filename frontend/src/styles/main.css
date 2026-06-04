@@ -178,47 +178,4 @@ textarea {
   margin: 0 0 8px;
 }
 
-/* === View Transitions API: shared element morphs === */
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 320ms;
-  animation-timing-function: var(--ease-elastic);
-}
-
-::view-transition-old(root) {
-  animation-name: vt-fade-out;
-}
-
-::view-transition-new(root) {
-  animation-name: vt-fade-in;
-}
-
-::view-transition-group(*) {
-  animation-duration: 520ms;
-  animation-timing-function: var(--ease-elastic);
-}
-
-@keyframes vt-fade-out {
-  to {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.985);
-    filter: blur(2px);
-  }
-}
-
-@keyframes vt-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.99);
-    filter: blur(2px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 0.01ms !important;
-  }
-}

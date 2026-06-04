@@ -7,6 +7,7 @@ defineProps<{
 
 const emit = defineEmits<{
   logout: []
+  'open-auth': [blendyId: string]
 }>()
 </script>
 
@@ -15,6 +16,7 @@ const emit = defineEmits<{
     <AppHeader
       :is-authenticated="isAuthenticated"
       @logout="emit('logout')"
+      @open-auth="(id: string) => emit('open-auth', id)"
     />
     <slot />
   </div>

@@ -7,7 +7,6 @@ import {
 import { useAuthSession } from '../composables/useAuthSession'
 
 const WelcomePage = () => import('../pages/WelcomePage.vue')
-const AuthPage = () => import('../pages/AuthPage.vue')
 const InventoryPage = () => import('../pages/InventoryPage.vue')
 const RecipesPage = () => import('../pages/RecipesPage.vue')
 const RecipeDetailPage = () => import('../pages/RecipeDetailPage.vue')
@@ -32,7 +31,10 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/auth',
     name: 'auth',
-    component: AuthPage,
+    redirect: (to) => ({
+      name: 'welcome',
+      query: { auth: 'true', redirect: to.query.redirect as string | undefined },
+    }),
     meta: { guestOnly: true, title: 'Acceso' },
   },
   {
@@ -77,33 +79,6 @@ export const router = createRouter({
   },
 })
 
-function supportsViewTransitions(): boolean {
-  if (typeof document === 'undefined') return false
-  return typeof (document as Document & { startViewTransition?: unknown })
-    .startViewTransition === 'function'
-}
-
-/**
- * Wraps a navigation in the browser's View Transitions API when supported.
- * Falls back to a plain navigation otherwise (Vue's <Transition> handles the morph).
- */
-function withViewTransition(performNavigation: () => void | Promise<void>) {
-  if (!supportsViewTransitions()) {
-    void performNavigation()
-    return
-  }
-  const transition = (
-    document as Document & {
-      startViewTransition: (cb: () => void) => { finished: Promise<void> }
-    }
-  ).startViewTransition(() => {
-    void performNavigation()
-  })
-  void transition.finished.catch(() => {
-    /* swallow; the page has already swapped */
-  })
-}
-
 router.beforeEach((to: RouteLocationNormalized) => {
   const { isAuthenticated } = useAuthSession()
 
@@ -117,14 +92,6 @@ router.beforeEach((to: RouteLocationNormalized) => {
 
   return true
 })
-
-const originalPush = router.push.bind(router)
-router.push = ((target: Parameters<typeof originalPush>[0]) => {
-  withViewTransition(() => {
-    void originalPush(target)
-  })
-  return Promise.resolve()
-}) as typeof router.push
 
 router.afterEach((to) => {
   const title = to.meta.title

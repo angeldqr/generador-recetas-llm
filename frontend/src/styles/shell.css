@@ -223,3 +223,42 @@
     flex: 1;
   }
 }
+
+@media (max-width: 820px) {
+  body.is-welcome-page .app-header {
+    min-height: 66px;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding-block: 8px;
+  }
+
+  body.is-welcome-page .brand {
+    justify-self: start;
+    padding-right: 12px;
+  }
+
+  body.is-welcome-page .brand small {
+    display: none;
+  }
+
+  body.is-welcome-page .nav {
+    display: none;
+  }
+
+  body.is-welcome-page .header-actions {
+    justify-self: end;
+    width: auto;
+  }
+
+  body.is-welcome-page .header-action {
+    width: auto;
+    min-height: 40px;
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  body.is-welcome-page .header-action {
+    display: none;
+  }
+}

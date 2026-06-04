@@ -4,7 +4,7 @@ let instance: Blendy | null = null
 
 export function useBlendy(): Blendy {
   if (!instance) {
-    instance = createBlendy({ animation: 'dynamic' })
+    instance = createBlendy({ animation: 'spring' })
   }
   return instance
 }

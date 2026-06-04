@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch, type CSSProperties } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import gsap from 'gsap'
 import AppShell from './components/AppShell.vue'
 import AuthPanel from './components/AuthPanel.vue'
+import { buildAnchoredBlendyTargetStyle } from './composables/useAnchoredBlendyTarget'
 import { useAuthSession } from './composables/useAuthSession'
 import { useBlendy } from './composables/useBlendy'
 
@@ -15,10 +16,15 @@ const blendy = useBlendy()
 /* ── Auth modal state (Blendy pattern) ── */
 const showAuthModal = ref(false)
 const activeBlendyId = ref('')
+const authTargetStyle = ref<CSSProperties>({})
 
 async function handleOpenAuth(blendyId: string) {
   if (showAuthModal.value) return
   activeBlendyId.value = blendyId
+  authTargetStyle.value = buildAnchoredBlendyTargetStyle(blendyId, {
+    width: 520,
+    height: 610,
+  })
   showAuthModal.value = true
   await nextTick()
   blendy.update()
@@ -26,9 +32,15 @@ async function handleOpenAuth(blendyId: string) {
 }
 
 function handleCloseAuth() {
+  if (!activeBlendyId.value) {
+    showAuthModal.value = false
+    return
+  }
+
   blendy.untoggle(activeBlendyId.value, () => {
     showAuthModal.value = false
     activeBlendyId.value = ''
+    authTargetStyle.value = {}
   })
 }
 
@@ -66,12 +78,21 @@ watch(
     if (showAuthModal.value) {
       showAuthModal.value = false
       activeBlendyId.value = ''
+      authTargetStyle.value = {}
     }
   },
 )
 
 /* ── Page transitions ── */
 const isWelcome = computed(() => route.name === 'welcome')
+
+watch(
+  () => isWelcome.value,
+  (isWelcomePage) => {
+    document.body.classList.toggle('is-welcome-page', isWelcomePage)
+  },
+  { immediate: true },
+)
 
 function shouldReduceMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false
@@ -130,7 +151,11 @@ function onPageLeave(el: Element, done: () => void) {
   <Teleport to="body">
     <template v-if="showAuthModal">
       <div class="auth-backdrop" @click="handleCloseAuth"></div>
-      <div class="auth-blendy-target" :data-blendy-to="activeBlendyId">
+      <div
+        class="auth-blendy-target"
+        :data-blendy-to="activeBlendyId"
+        :style="authTargetStyle"
+      >
         <div class="auth-modal-card">
           <button
             class="auth-modal-close"
@@ -164,8 +189,21 @@ function onPageLeave(el: Element, done: () => void) {
 }
 
 .page--welcome {
+  height: calc(100dvh - 76px);
   width: 100%;
   padding: 0;
+  overflow: hidden;
+}
+
+body.is-welcome-page {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.is-welcome-page #app,
+body.is-welcome-page .app-shell {
+  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
 }
 
@@ -175,6 +213,7 @@ function onPageLeave(el: Element, done: () => void) {
     padding-top: 16px;
   }
   .page--welcome {
+    height: calc(100dvh - 66px);
     width: 100%;
     padding: 0;
   }
@@ -199,11 +238,11 @@ function onPageLeave(el: Element, done: () => void) {
 /* ── Auth Blendy target — the element that morphs FROM the button ── */
 .auth-blendy-target {
   position: fixed;
-  inset: 0;
-  width: fit-content;
+  right: auto;
+  bottom: auto;
   height: fit-content;
-  margin: auto;
   z-index: 1000;
+  transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
 }
 
 /* ── Auth modal card (single child of blendy target) ── */
@@ -211,7 +250,9 @@ function onPageLeave(el: Element, done: () => void) {
   position: relative;
   display: grid;
   gap: 10px;
-  width: min(520px, calc(100vw - 32px));
+  width: 100%;
+  max-height: inherit;
+  overflow: auto;
   padding: 40px 36px 36px;
   border: 1px solid rgb(15 36 24 / 0.08);
   border-radius: 32px;
@@ -222,6 +263,7 @@ function onPageLeave(el: Element, done: () => void) {
     0 0 0 1px rgb(255 255 255 / 0.08),
     0 48px 120px -20px rgb(15 36 24 / 0.35),
     0 20px 50px -15px rgb(38 116 81 / 0.18);
+  transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
 }
 
 .auth-modal-card::before {

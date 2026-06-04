@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
+import { buildAnchoredBlendyTargetStyle } from '../composables/useAnchoredBlendyTarget'
 import { useAppData } from '../composables/useAppData'
 import { useAuthSession } from '../composables/useAuthSession'
 import { useBlendy } from '../composables/useBlendy'
@@ -17,8 +18,13 @@ const emit = defineEmits<{
 
 /* ── Flow modal state (Blendy) ── */
 const showFlowModal = ref(false)
+const flowTargetStyle = ref<CSSProperties>({})
 
 async function openFlowModal() {
+  flowTargetStyle.value = buildAnchoredBlendyTargetStyle('flow-info', {
+    width: 560,
+    height: 430,
+  })
   showFlowModal.value = true
   await nextTick()
   blendy.update()
@@ -28,6 +34,7 @@ async function openFlowModal() {
 function closeFlowModal() {
   blendy.untoggle('flow-info', () => {
     showFlowModal.value = false
+    flowTargetStyle.value = {}
   })
 }
 
@@ -195,7 +202,11 @@ onMounted(() => {
     <Teleport to="body">
       <template v-if="showFlowModal">
         <div class="flow-backdrop" @click="closeFlowModal"></div>
-        <div class="flow-blendy-target" data-blendy-to="flow-info">
+        <div
+          class="flow-blendy-target"
+          data-blendy-to="flow-info"
+          :style="flowTargetStyle"
+        >
           <div class="flow-modal-card">
             <header class="flow-modal-header">
               <h2>Como funciona</h2>
@@ -205,7 +216,10 @@ onMounted(() => {
                 aria-label="Cerrar"
                 @click="closeFlowModal"
               >
-                ×
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </header>
             <ol class="modal-flow">
@@ -223,24 +237,27 @@ onMounted(() => {
 
 <style scoped>
 .welcome-root {
+  height: 100%;
   width: min(1240px, 100%);
   margin: 0 auto;
   perspective: 1200px;
+  overflow: hidden;
 }
 
 .welcome-hero {
-  height: calc(100dvh - 76px);
-  max-height: calc(100dvh - 76px);
+  height: 100%;
+  max-height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
-  gap: 64px;
+  gap: clamp(28px, 5vw, 64px);
   align-items: center;
+  padding: clamp(14px, 3vh, 34px) 0;
   overflow: hidden;
 }
 
 .welcome-hero__main {
   display: grid;
-  gap: 28px;
+  gap: clamp(14px, 2.7vh, 28px);
 }
 
 /* ── Eyebrow ── */
@@ -276,7 +293,7 @@ onMounted(() => {
   margin: 0;
   font-family: "Bricolage Grotesque", system-ui, serif;
   font-weight: 700;
-  font-size: clamp(5rem, 18vw, 16rem);
+  font-size: clamp(5rem, min(18vw, 24vh), 16rem);
   line-height: 0.82;
   letter-spacing: -0.04em;
   color: var(--color-ink);
@@ -314,7 +331,7 @@ onMounted(() => {
   max-width: 56ch;
   color: var(--color-ink-soft);
   font-family: "DM Sans", system-ui;
-  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  font-size: clamp(1rem, min(1.6vw, 2.8vh), 1.35rem);
   line-height: 1.5;
   letter-spacing: -0.01em;
 }
@@ -324,7 +341,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .cta {
@@ -499,7 +516,7 @@ onMounted(() => {
   background: rgb(15 36 24 / 0.35);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
   backdrop-filter: blur(14px) saturate(120%);
-  animation: flow-fade-in 0.3s ease forwards;
+  animation: flow-fade-in 0.28s var(--ease-out) forwards;
 }
 
 @keyframes flow-fade-in {
@@ -509,17 +526,18 @@ onMounted(() => {
 
 .flow-blendy-target {
   position: fixed;
-  inset: 0;
-  width: fit-content;
+  right: auto;
+  bottom: auto;
   height: fit-content;
-  margin: auto;
   z-index: 1000;
+  transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
 }
 
 .flow-modal-card {
   position: relative;
-  width: min(560px, calc(100vw - 32px));
-  overflow: hidden;
+  width: 100%;
+  max-height: inherit;
+  overflow: auto;
   border: 1px solid rgb(15 36 24 / 0.08);
   border-radius: 32px;
   background:
@@ -529,6 +547,7 @@ onMounted(() => {
     0 0 0 1px rgb(255 255 255 / 0.08),
     0 48px 120px -20px rgb(15 36 24 / 0.35),
     0 20px 50px -15px rgb(38 116 81 / 0.18);
+  transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
 }
 
 .flow-modal-card::before {
@@ -570,9 +589,6 @@ onMounted(() => {
   border-radius: 50%;
   color: var(--color-ink);
   background: var(--color-panel);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 1.2rem;
-  font-weight: 700;
   line-height: 1;
   transition:
     transform 160ms var(--ease-out),
@@ -634,22 +650,55 @@ onMounted(() => {
 @media (max-width: 980px) {
   .welcome-hero {
     grid-template-columns: 1fr;
-    gap: 40px;
-    height: auto;
-    max-height: none;
+    gap: 22px;
   }
   .hero-summary {
     order: 2;
+    padding: 20px;
   }
 }
 
 @media (max-width: 600px) {
-  .hero-title {
-    font-size: clamp(4rem, 26vw, 8rem);
+  .welcome-hero {
+    align-content: center;
   }
+
+  .hero-title {
+    font-size: clamp(4rem, min(25vw, 20vh), 8rem);
+  }
+
+  .hero-summary {
+    display: none;
+  }
+
   .cta {
     flex: 1;
     justify-content: center;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 981px) {
+  .hero-eyebrow {
+    padding-block: 6px;
+  }
+
+  .hero-summary {
+    gap: 10px;
+    padding: 22px;
+  }
+
+  .hero-summary__hint {
+    display: none;
+  }
+
+  .cta {
+    min-height: 50px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-backdrop {
+    animation: none;
   }
 }
 </style>

@@ -24,6 +24,8 @@ async function handleOpenAuth(blendyId: string) {
   authTargetStyle.value = buildAnchoredBlendyTargetStyle(blendyId, {
     width: 520,
     height: 610,
+    margin: 18,
+    gap: 14,
   })
   showAuthModal.value = true
   await nextTick()
@@ -224,10 +226,12 @@ body.is-welcome-page .app-shell {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgb(15 36 24 / 0.35);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
-  animation: auth-fade-in 0.3s ease forwards;
+  background:
+    radial-gradient(circle at var(--blendy-backdrop-x, 50%) var(--blendy-backdrop-y, 50%), rgb(38 116 81 / 0.2), transparent 34%),
+    rgb(15 36 24 / 0.36);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+  animation: auth-fade-in 0.28s var(--ease-out) forwards;
 }
 
 @keyframes auth-fade-in {
@@ -243,6 +247,7 @@ body.is-welcome-page .app-shell {
   height: fit-content;
   z-index: 1000;
   transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
+  will-change: transform;
 }
 
 /* ── Auth modal card (single child of blendy target) ── */
@@ -255,15 +260,16 @@ body.is-welcome-page .app-shell {
   overflow: auto;
   padding: 40px 36px 36px;
   border: 1px solid rgb(15 36 24 / 0.08);
-  border-radius: 32px;
+  border-radius: 30px;
   background:
-    linear-gradient(160deg, rgb(254 253 248 / 0.98), rgb(244 241 232 / 0.94)),
+    linear-gradient(150deg, rgb(254 253 248 / 0.98), rgb(236 240 226 / 0.96)),
     var(--color-panel);
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.08),
     0 48px 120px -20px rgb(15 36 24 / 0.35),
     0 20px 50px -15px rgb(38 116 81 / 0.18);
   transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
+  will-change: transform, opacity;
 }
 
 .auth-modal-card::before {
@@ -339,6 +345,7 @@ body.is-welcome-page .app-shell {
 @media (max-width: 600px) {
   .auth-modal-card {
     padding: 32px 24px 28px;
+    border-radius: 24px;
   }
 }
 </style>

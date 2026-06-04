@@ -1,5 +1,9 @@
 import type {
   AuthToken,
+  ApiMessage,
+  Ingredient,
+  IngredientPayload,
+  IngredientUpdatePayload,
   LoginPayload,
   RegisterPayload,
   UserResponse,
@@ -76,5 +80,36 @@ export function loginUser(payload: LoginPayload) {
   return apiRequest<AuthToken>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
+  })
+}
+
+export function getIngredients(token: string) {
+  return apiRequest<Ingredient[]>('/ingredients/', { token })
+}
+
+export function createIngredient(payload: IngredientPayload, token: string) {
+  return apiRequest<Ingredient>('/ingredients/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateIngredient(
+  ingredientId: number,
+  payload: IngredientUpdatePayload,
+  token: string,
+) {
+  return apiRequest<Ingredient>(`/ingredients/${ingredientId}`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteIngredient(ingredientId: number, token: string) {
+  return apiRequest<ApiMessage>(`/ingredients/${ingredientId}`, {
+    method: 'DELETE',
+    token,
   })
 }

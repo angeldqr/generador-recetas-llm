@@ -2,10 +2,13 @@
 import { computed, ref } from 'vue'
 import AppShell from './components/AppShell.vue'
 import AuthPanel from './components/AuthPanel.vue'
+import InventoryPanel from './components/InventoryPanel.vue'
 import { useAuthSession } from './composables/useAuthSession'
+import type { Ingredient } from './types/api'
 
-const activeView = ref('auth')
-const { isAuthenticated, setToken, clearSession } = useAuthSession()
+const { token, isAuthenticated, setToken, clearSession } = useAuthSession()
+const activeView = ref(isAuthenticated.value ? 'inventory' : 'auth')
+const ingredients = ref<Ingredient[]>([])
 
 const heroTitle = computed(() =>
   isAuthenticated.value
@@ -19,12 +22,17 @@ function navigate(view: string) {
 
 function logout() {
   clearSession()
+  ingredients.value = []
   activeView.value = 'auth'
 }
 
 function handleAuthenticated(token: string) {
   setToken(token)
   activeView.value = 'inventory'
+}
+
+function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
+  ingredients.value = nextIngredients
 }
 </script>
 
@@ -55,7 +63,7 @@ function handleAuthenticated(token: string) {
         </div>
         <aside class="hero__panel" aria-label="Resumen de la aplicación">
           <span>Inventario</span>
-          <strong>0 ingredientes</strong>
+          <strong>{{ ingredients.length }} ingredientes</strong>
           <div class="panel-line"></div>
           <span>Recetas guardadas</span>
           <strong>0 recetas</strong>
@@ -63,7 +71,15 @@ function handleAuthenticated(token: string) {
       </section>
 
       <section class="workspace">
-        <AuthPanel v-if="activeView === 'auth'" @authenticated="handleAuthenticated" />
+        <AuthPanel
+          v-if="activeView === 'auth' && !isAuthenticated"
+          @authenticated="handleAuthenticated"
+        />
+        <InventoryPanel
+          v-else-if="activeView === 'inventory'"
+          :token="token"
+          @updated="handleIngredientsUpdated"
+        />
         <article v-else class="workspace__card">
           <p class="workspace__label">{{ activeView }}</p>
           <h2>Área de trabajo preparada</h2>

@@ -1,35 +1,49 @@
 # Generador de Recetas con Inventario
 
-Aplicación web para registrar ingredientes disponibles en casa y generar recetas estructuradas con un LLM.
+Aplicacion web para registrar ingredientes disponibles en casa y generar recetas estructuradas con un LLM.
 
 ## Stack
 
 - Backend: Python, FastAPI, SQLAlchemy, JWT.
-- Base de datos: MySQL en desarrollo/despliegue, SQLite solo para pruebas.
+- Base de datos: PostgreSQL en desarrollo/despliegue, SQLite solo para pruebas.
 - LLM: OpenRouter mediante endpoint OpenAI-compatible.
 - Frontend: Vue + Vite en `frontend/`.
 - Despliegue: Docker + Docker Compose.
 
-## Configuración
+## Configuracion
 
-1. Copia las variables de ejemplo.
+Ya existe un `.env` local ignorado por Git. Si necesitas regenerarlo:
 
 ```bash
 copy .env.example .env
 ```
 
-2. Ajusta `.env`.
-
-Para tu base local creada como `generador-recetas-llm-db`, usa algo como:
+Para la base local creada como `generador-recetas-llm-db`, ajusta la clave real de PostgreSQL:
 
 ```env
-DATABASE_URL=mysql+pymysql://root:TU_PASSWORD@localhost:3306/generador-recetas-llm-db
+DATABASE_URL=postgresql+psycopg2://postgres:TU_PASSWORD@localhost:5432/generador-recetas-llm-db
 SECRET_KEY=una-clave-larga-y-secreta
 OPENROUTER_API_KEY=sk-or-tu-api-key
 OPENROUTER_MODEL=openrouter/free
 ```
 
 No subas `.env` al repositorio.
+
+## Crear tablas
+
+Con la clave correcta en `.env`, puedes crear/verificar las tablas con:
+
+```bash
+python scripts/init_db.py
+```
+
+Tambien puedes ejecutar el SQL manual desde pgAdmin:
+
+```txt
+database/schema_postgresql.sql
+```
+
+Mas detalle: `docs/BACKEND_DATABASE_SETUP.md`.
 
 ## Ejecutar backend local
 
@@ -54,7 +68,7 @@ npm run dev
 
 Frontend: `http://127.0.0.1:5173`
 
-Si el backend no está en `http://127.0.0.1:8000`, crea `frontend/.env`:
+Si el backend no esta en `http://127.0.0.1:8000`, crea `frontend/.env`:
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
@@ -70,7 +84,7 @@ docker compose up --build
 Esto levanta:
 
 - API en `http://127.0.0.1:8000`
-- MySQL en `127.0.0.1:3306`
+- PostgreSQL en `127.0.0.1:5432`
 
 ## Pruebas
 
@@ -78,10 +92,10 @@ Esto levanta:
 pytest
 ```
 
-Las pruebas usan SQLite temporal para no depender de MySQL.
+Las pruebas usan SQLite temporal para no depender de PostgreSQL.
 
 ## Entregables
 
 - URL del repositorio.
-- URL de producción con HTTPS.
-- PDF de máximo 3 páginas con arquitectura, diagrama ER, decisiones técnicas y capturas.
+- URL de produccion con HTTPS.
+- PDF de maximo 3 paginas con arquitectura, diagrama ER, decisiones tecnicas y capturas.

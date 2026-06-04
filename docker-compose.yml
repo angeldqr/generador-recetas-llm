@@ -12,23 +12,22 @@ services:
     restart: unless-stopped
 
   db:
-    image: mysql:8.4
+    image: postgres:16-alpine
     container_name: recetas-llm-db
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-generador-recetas-llm-db}
-      MYSQL_USER: ${MYSQL_USER:-recetas_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-recetas_password}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-generador-recetas-llm-db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_change_me}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - recetas_mysql_data:/var/lib/mysql
+      - recetas_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
 volumes:
-  recetas_mysql_data:
+  recetas_postgres_data:

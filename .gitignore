@@ -1,0 +1,36 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Agent and local assistant state
+.agents/
+skills-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node and frontend builds
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.nuxt/
+frontend/.output/
+frontend/.cache/
+frontend/node_modules/.tmp/
+
+# IDE and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

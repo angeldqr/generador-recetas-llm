@@ -17,15 +17,8 @@
   display: grid;
   place-items: center;
   padding: 48px 20px;
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  color: #13231c;
-  background: #f6f7f2;
+  color: var(--color-ink);
+  background: var(--color-soft);
 }
 
 .starter section {
@@ -34,7 +27,7 @@
 
 .starter__eyebrow {
   margin: 0 0 12px;
-  color: #46745b;
+  color: var(--color-accent);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -50,7 +43,7 @@
 
 .starter p {
   max-width: 54ch;
-  color: #4c5d52;
+  color: var(--color-muted);
   font-size: 1.05rem;
   line-height: 1.7;
 }

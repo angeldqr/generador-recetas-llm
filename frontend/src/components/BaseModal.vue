@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { onBeforeUnmount, ref, watch } from 'vue'
 import gsap from 'gsap'
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import type { Blendy } from 'blendy'
+import { Flip } from 'gsap/Flip'
+import { CustomEase } from 'gsap/CustomEase'
+import { PrettyModal } from 'prettier-modals'
+
+gsap.registerPlugin(Flip, CustomEase)
 
 const props = defineProps<{
   open: boolean
@@ -14,150 +18,77 @@ const emit = defineEmits<{
 }>()
 
 const dialog = ref<HTMLDialogElement | null>(null)
-const modalCard = ref<HTMLElement | null>(null)
-const modalState = ref<'closed' | 'open' | 'closing'>('closed')
-let blendyInstance: Blendy | null = null
-let blendyUnavailable = false
+const prettyModal = new PrettyModal({
+  anchor: 'center',
+  duration: 0.5,
+  respectReducedMotion: true,
+})
 
 function shouldReduceMotion() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function cancelMotion() {
-  if (modalCard.value) {
-    gsap.killTweensOf(modalCard.value)
-  }
-}
-
-async function getBlendy() {
-  if (!props.blendyId || blendyUnavailable) {
-    return null
-  }
-
-  if (blendyInstance) {
-    return blendyInstance
-  }
-
-  try {
-    const blendyModule = await import('blendy')
-    const create = blendyModule.createBlendy
-
-    if (!create) {
-      blendyUnavailable = true
-      return null
-    }
-
-    blendyInstance = create({ animation: 'dynamic' })
-    return blendyInstance
-  } catch {
-    blendyUnavailable = true
-    return null
-  }
-}
-
-async function runOpenMotion() {
-  modalState.value = 'open'
-
-  if (shouldReduceMotion() || !modalCard.value) {
-    return
-  }
-
-  const blendy = await getBlendy()
-
-  if (blendy && props.blendyId) {
-    await nextTick()
-    blendy.update()
-    blendy.toggle(props.blendyId)
-  }
-
-  gsap.fromTo(
-    modalCard.value,
-    {
-      autoAlpha: 0,
-      filter: 'blur(3px)',
-      scale: 0.97,
-      y: 10,
-    },
-    {
-      autoAlpha: 1,
-      duration: 0.24,
-      ease: 'power3.out',
-      filter: 'blur(0px)',
-      overwrite: true,
-      scale: 1,
-      y: 0,
-    },
+function resolveTrigger(): HTMLElement | undefined {
+  if (!props.blendyId) return undefined
+  const trigger = document.querySelector<HTMLElement>(
+    `[data-blendy-from="${props.blendyId}"]`,
   )
-}
-
-function finishClose() {
-  dialog.value?.close()
-  modalState.value = 'closed'
+  return trigger ?? undefined
 }
 
 async function openDialog() {
-  cancelMotion()
+  if (!dialog.value) return
 
-  if (!dialog.value?.open) {
-    dialog.value?.showModal()
-  }
-
-  await nextTick()
-  void runOpenMotion()
-}
-
-async function closeDialog() {
-  if (!dialog.value?.open || modalState.value === 'closing') {
+  if (shouldReduceMotion()) {
+    if (!dialog.value.open) dialog.value.showModal()
+    gsap.set(dialog.value, { autoAlpha: 1 })
     return
   }
 
-  modalState.value = 'closing'
+  const trigger = resolveTrigger()
+  if (trigger) {
+    prettyModal.open(dialog.value, {
+      trigger,
+      anchor: 'center',
+      duration: 0.5,
+    })
+  } else {
+    prettyModal.open(dialog.value, { anchor: 'center', duration: 0.5 })
+  }
+}
 
-  if (shouldReduceMotion() || !modalCard.value) {
-    finishClose()
+function closeDialog() {
+  if (!dialog.value || !dialog.value.open) return
+
+  if (shouldReduceMotion()) {
+    dialog.value.close()
     return
   }
 
-  const blendy = await getBlendy()
-
-  gsap.to(modalCard.value, {
-    autoAlpha: 0,
-    duration: 0.16,
-    ease: 'power2.out',
-    filter: 'blur(2px)',
-    overwrite: true,
-    scale: 0.97,
-    y: 8,
-    onComplete: () => {
-      if (blendy && props.blendyId) {
-        blendy.untoggle(props.blendyId, finishClose)
-      } else {
-        finishClose()
-      }
-    },
-  })
+  prettyModal.close(dialog.value)
 }
 
-function requestClose() {
-  emit('close')
-}
-
-function handleCancel(event: Event) {
+function onCancel(event: Event) {
   event.preventDefault()
-  requestClose()
+  closeDialog()
 }
 
-function handleDialogClick(event: MouseEvent) {
+function onClick(event: MouseEvent) {
   if (event.target === dialog.value) {
-    requestClose()
+    closeDialog()
   }
+}
+
+function onClose() {
+  emit('close')
 }
 
 watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
-      openDialog()
+      void openDialog()
     } else {
       closeDialog()
     }
@@ -166,7 +97,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  cancelMotion()
+  prettyModal.destroy()
 })
 </script>
 
@@ -174,20 +105,22 @@ onBeforeUnmount(() => {
   <dialog
     ref="dialog"
     class="base-modal"
-    :data-state="modalState"
-    @cancel="handleCancel"
-    @click="handleDialogClick"
+    :data-blendy-to="blendyId"
+    role="document"
+    @cancel="onCancel"
+    @close="onClose"
+    @click="onClick"
   >
-    <article
-      ref="modalCard"
-      class="base-modal__card"
-      :data-blendy-to="blendyId"
-      role="document"
-    >
+    <article class="base-modal__card">
       <div class="base-modal__surface">
         <header class="base-modal__header">
           <h2>{{ title }}</h2>
-          <button class="base-modal__close" type="button" aria-label="Cerrar modal" @click="requestClose">
+          <button
+            class="base-modal__close"
+            type="button"
+            aria-label="Cerrar modal"
+            @click="closeDialog"
+          >
             x
           </button>
         </header>

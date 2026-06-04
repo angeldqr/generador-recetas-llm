@@ -26,12 +26,12 @@ function onPageEnter(el: Element, done: () => void) {
 
   gsap.fromTo(
     node,
-    { autoAlpha: 0, y: 18, filter: 'blur(2px)' },
+    { autoAlpha: 0, y: 14, filter: 'blur(2px)' },
     {
       autoAlpha: 1,
       y: 0,
       filter: 'blur(0px)',
-      duration: 0.42,
+      duration: 0.32,
       ease: 'power3.out',
       clearProps: 'filter',
       onComplete: done,
@@ -66,7 +66,7 @@ function onPageLeave(el: Element, done: () => void) {
       <RouterView v-slot="{ Component }">
         <Transition
           :css="false"
-          mode="out-in"
+          mode="in-out"
           @enter="onPageEnter"
           @leave="onPageLeave"
         >

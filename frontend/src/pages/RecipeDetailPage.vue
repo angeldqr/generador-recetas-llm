@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRecipes } from '../services/api'
 import { useStaggerReveal } from '../composables/useStaggerReveal'
+import { useBlendyOnMount } from '../composables/useBlendy'
 import type { Recipe } from '../types/api'
 
 const props = defineProps<{
@@ -19,10 +20,14 @@ const pageRoot = ref<HTMLElement | null>(null)
 useStaggerReveal({
   root: pageRoot,
   selector: '.recipe-detail__header, .recipe-detail__section',
-  delay: 0.32,
+  delay: 0.36,
   stagger: 0.08,
   duration: 0.55,
 })
+
+if (props.id && /^\d+$/.test(props.id)) {
+  useBlendyOnMount({ id: `recipe-card-${props.id}` })
+}
 
 const currentRecipe = computed<Recipe | null>(() => {
   const id = Number(props.id)
@@ -89,7 +94,7 @@ function goBack() {
       La receta solicitada no existe o ya no está disponible.
     </p>
 
-    <article v-else class="recipe-detail" data-blendy-to="recipe-detail">
+    <article v-else class="recipe-detail" :data-blendy-to="`recipe-card-${currentRecipe.id}`">
       <header class="recipe-detail__header">
         <p class="recipe-detail__eyebrow">Receta guardada</p>
         <h1 class="recipe-detail__title">{{ currentRecipe.nombre_plato }}</h1>

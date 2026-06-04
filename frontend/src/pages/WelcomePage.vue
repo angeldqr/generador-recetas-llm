@@ -48,7 +48,12 @@ function openFlowModal() {
         <h1 class="welcome-hero__title">{{ heroTitle }}</h1>
         <p class="welcome-hero__body">{{ heroBody }}</p>
         <div class="welcome-hero__actions">
-          <button class="pill-button" type="button" @click="goToPrimary">
+          <button
+            class="pill-button"
+            type="button"
+            data-blendy-from="auth-cta"
+            @click="goToPrimary"
+          >
             {{ primaryLabel }}
           </button>
           <button

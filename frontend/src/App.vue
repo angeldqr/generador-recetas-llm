@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import AppShell from './components/AppShell.vue'
 import AuthPanel from './components/AuthPanel.vue'
+import BaseModal from './components/BaseModal.vue'
 import InventoryPanel from './components/InventoryPanel.vue'
 import { useAuthSession } from './composables/useAuthSession'
 import type { Ingredient } from './types/api'
@@ -9,6 +10,7 @@ import type { Ingredient } from './types/api'
 const { token, isAuthenticated, setToken, clearSession } = useAuthSession()
 const activeView = ref(isAuthenticated.value ? 'inventory' : 'auth')
 const ingredients = ref<Ingredient[]>([])
+const isFlowModalOpen = ref(false)
 
 const heroTitle = computed(() =>
   isAuthenticated.value
@@ -56,7 +58,7 @@ function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
             <button class="pill-button" type="button" @click="navigate('auth')">
               Empezar
             </button>
-            <button class="pill-button pill-button--light" type="button" @click="navigate('preview')">
+            <button class="pill-button pill-button--light" type="button" @click="isFlowModalOpen = true">
               Ver flujo
             </button>
           </div>
@@ -90,6 +92,19 @@ function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
         </article>
       </section>
     </main>
+
+    <BaseModal
+      :open="isFlowModalOpen"
+      title="Flujo de uso"
+      @close="isFlowModalOpen = false"
+    >
+      <ol class="modal-flow">
+        <li><span>1</span>Crear cuenta o iniciar sesión</li>
+        <li><span>2</span>Registrar ingredientes disponibles</li>
+        <li><span>3</span>Generar receta estructurada con IA</li>
+        <li><span>4</span>Guardar, calificar o eliminar del historial</li>
+      </ol>
+    </BaseModal>
   </AppShell>
 </template>
 

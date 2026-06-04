@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   createIngredient,
   deleteIngredient,
@@ -27,6 +27,12 @@ const isLoading = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const nameInput = ref<InstanceType<typeof BaseInput> | null>(null)
+
+const countLabel = computed(() => {
+  const count = ingredients.value.length
+  return count === 1 ? '1 registrado' : `${count} registrados`
+})
 
 function resetForm() {
   name.value = ''
@@ -116,6 +122,7 @@ function startEdit(ingredient: Ingredient) {
   unit.value = ingredient.unidad
   successMessage.value = ''
   errorMessage.value = ''
+  nameInput.value?.focus()
 }
 
 async function removeIngredient(ingredient: Ingredient) {
@@ -135,6 +142,10 @@ async function removeIngredient(ingredient: Ingredient) {
   }
 }
 
+function focusFirstField() {
+  nameInput.value?.focus()
+}
+
 onMounted(loadIngredients)
 </script>
 
@@ -145,11 +156,12 @@ onMounted(loadIngredients)
         <p class="workspace__label">Inventario</p>
         <h2 id="inventory-title">Ingredientes disponibles</h2>
       </div>
-      <span class="inventory-count">{{ ingredients.length }} registrados</span>
+      <span class="inventory-count">{{ countLabel }}</span>
     </div>
 
     <form class="ingredient-form" @submit.prevent="submitIngredient">
       <BaseInput
+        ref="nameInput"
         v-model="name"
         label="Ingrediente"
         placeholder="Arroz"
@@ -207,11 +219,19 @@ onMounted(loadIngredients)
     </div>
 
     <div v-else class="inventory-empty">
+      <div class="inventory-empty__mark" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
       <p class="workspace__label">Sin ingredientes</p>
-      <h3>Agrega lo que tengas en casa</h3>
+      <h3>Empieza por lo que si tienes</h3>
       <p>
-        Con dos o tres ingredientes ya puedes probar la generación de recetas.
+        Escribe un ingrediente real, su cantidad y la unidad. El generador se activa cuando el inventario deja de estar vacio.
       </p>
+      <BaseButton type="button" variant="soft" @click="focusFirstField">
+        Agregar primer ingrediente
+      </BaseButton>
     </div>
   </section>
 </template>

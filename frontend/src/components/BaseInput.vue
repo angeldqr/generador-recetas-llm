@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 const props = withDefaults(
   defineProps<{
     modelValue: string
@@ -21,12 +23,21 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+const inputEl = ref<HTMLInputElement | null>(null)
+
+function focus() {
+  inputEl.value?.focus()
+}
+
+defineExpose({ focus })
 </script>
 
 <template>
   <label class="base-input">
     <span>{{ label }}</span>
     <input
+      ref="inputEl"
       :autocomplete="autocomplete"
       :inputmode="inputmode"
       :name="name"

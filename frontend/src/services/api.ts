@@ -6,6 +6,7 @@ import type {
   IngredientUpdatePayload,
   LoginPayload,
   Recipe,
+  RatingResponse,
   RegisterPayload,
   UserResponse,
 } from '../types/api'
@@ -119,5 +120,24 @@ export function generateRecipe(token: string) {
   return apiRequest<Recipe>('/recipes/generate', {
     method: 'POST',
     token,
+  })
+}
+
+export function getRecipes(token: string) {
+  return apiRequest<Recipe[]>('/recipes/', { token })
+}
+
+export function deleteRecipe(recipeId: number, token: string) {
+  return apiRequest<ApiMessage>(`/recipes/${recipeId}`, {
+    method: 'DELETE',
+    token,
+  })
+}
+
+export function rateRecipe(recipeId: number, estrellas: number, token: string) {
+  return apiRequest<RatingResponse>(`/recipes/${recipeId}/rate`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ estrellas }),
   })
 }

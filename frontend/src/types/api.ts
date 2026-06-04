@@ -53,3 +53,11 @@ export interface Recipe {
   dificultad: string
   fecha_creacion: string
 }
+
+export interface RatingPayload {
+  estrellas: number
+}
+
+export interface RatingResponse extends ApiMessage {
+  estrellas: number
+}

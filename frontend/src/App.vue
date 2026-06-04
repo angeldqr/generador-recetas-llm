@@ -5,13 +5,15 @@ import AuthPanel from './components/AuthPanel.vue'
 import BaseModal from './components/BaseModal.vue'
 import InventoryPanel from './components/InventoryPanel.vue'
 import RecipeGenerator from './components/RecipeGenerator.vue'
+import RecipeHistoryPanel from './components/RecipeHistoryPanel.vue'
 import { useAuthSession } from './composables/useAuthSession'
 import type { Ingredient, Recipe } from './types/api'
 
 const { token, isAuthenticated, setToken, clearSession } = useAuthSession()
 const activeView = ref(isAuthenticated.value ? 'inventory' : 'auth')
 const ingredients = ref<Ingredient[]>([])
-const recipeCount = ref(0)
+const recipes = ref<Recipe[]>([])
+const recipeCount = computed(() => recipes.value.length)
 const isFlowModalOpen = ref(false)
 
 const heroTitle = computed(() =>
@@ -27,6 +29,7 @@ function navigate(view: string) {
 function logout() {
   clearSession()
   ingredients.value = []
+  recipes.value = []
   activeView.value = 'auth'
 }
 
@@ -40,7 +43,11 @@ function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
 }
 
 function handleRecipeGenerated(_recipe: Recipe) {
-  recipeCount.value += 1
+  recipes.value = [_recipe, ...recipes.value.filter((recipe) => recipe.id !== _recipe.id)]
+}
+
+function handleRecipesLoaded(nextRecipes: Recipe[]) {
+  recipes.value = nextRecipes
 }
 </script>
 
@@ -91,6 +98,11 @@ function handleRecipeGenerated(_recipe: Recipe) {
           />
           <InventoryPanel :token="token" @updated="handleIngredientsUpdated" />
         </div>
+        <RecipeHistoryPanel
+          v-else-if="activeView === 'recipes'"
+          :token="token"
+          @loaded="handleRecipesLoaded"
+        />
         <article v-else class="workspace__card">
           <p class="workspace__label">{{ activeView }}</p>
           <h2>Área de trabajo preparada</h2>

@@ -6,12 +6,30 @@
   color: var(--color-ink);
   background: transparent;
   overflow: visible;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
+    visibility 0ms 320ms;
+  will-change: opacity, visibility;
+}
+
+.base-modal[open] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
+    visibility 0ms 0ms;
 }
 
 .base-modal::backdrop {
-  background: rgb(15 36 24 / 0.5);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
+  background: rgb(15 36 24 / 0.55);
+  opacity: 0;
+  transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.base-modal[open]::backdrop {
+  opacity: 1;
 }
 
 .base-modal__card {
@@ -24,7 +42,17 @@
     var(--color-panel);
   box-shadow: var(--shadow-pop);
   transform-origin: center;
+  transform: scale(0.94) translateY(12px);
+  opacity: 0;
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform, opacity;
+}
+
+.base-modal[open] .base-modal__card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
 }
 
 .base-modal__card::before {
@@ -80,14 +108,16 @@
   font-weight: 700;
   line-height: 1;
   transition:
-    transform 160ms var(--ease-out),
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
     color 180ms ease,
     border-color 180ms ease,
     background 180ms ease;
+  will-change: transform;
 }
 
 .base-modal__close:active {
   transform: scale(0.92);
+  transition-duration: 120ms;
 }
 
 .base-modal__body {
@@ -143,11 +173,17 @@
     color: var(--color-accent-strong);
     border-color: rgb(38 116 81 / 0.3);
     background: var(--color-accent-soft);
+    transform: scale(1.05);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .base-modal,
+  .base-modal::backdrop,
   .base-modal__card {
+    transition: none !important;
     transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }

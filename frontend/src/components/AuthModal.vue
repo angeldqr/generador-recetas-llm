@@ -1,12 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch, nextTick } from 'vue'
-import gsap from 'gsap'
-import { Flip } from 'gsap/Flip'
-import { CustomEase } from 'gsap/CustomEase'
-import { PrettyModal } from 'prettier-modals'
+import { ref, watch, nextTick } from 'vue'
 import AuthPanel from './AuthPanel.vue'
-
-gsap.registerPlugin(Flip, CustomEase)
 
 const props = defineProps<{
   open: boolean
@@ -19,56 +13,44 @@ const emit = defineEmits<{
 }>()
 
 const dialog = ref<HTMLDialogElement | null>(null)
-const ELASTIC_EASE = 'M0,0 C0.4,0 0.2,1 0.6,1 0.8,1 1,1 1,1'
+const isClosing = ref(false)
 
-const prettyModal = new PrettyModal({
-  anchor: 'origin',
-  duration: 0.7,
-  ease: ELASTIC_EASE,
-  respectReducedMotion: true,
-})
+const DURATION = 420
 
 function shouldReduceMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function resolveTrigger(): HTMLElement | undefined {
-  if (!props.triggerSelector) return undefined
-  const trigger = document.querySelector<HTMLElement>(props.triggerSelector)
-  return trigger ?? undefined
-}
-
 async function openDialog() {
   if (!dialog.value) return
+  if (dialog.value.open) return
 
-  const trigger = resolveTrigger()
-  if (trigger) {
-    prettyModal.open(dialog.value, {
-      trigger,
-      anchor: 'origin',
-      duration: 0.7,
-    })
-  } else {
-    prettyModal.open(dialog.value, {
-      anchor: 'center',
-      duration: 0.7,
-    })
-  }
+  isClosing.value = false
+  dialog.value.showModal()
 }
 
 function closeDialog() {
-  if (!dialog.value || !dialog.value.open) {
+  if (!dialog.value || !dialog.value.open || isClosing.value) {
+    emit('close')
+    return
+  }
+  isClosing.value = true
+
+  if (shouldReduceMotion()) {
+    dialog.value.close()
+    isClosing.value = false
     emit('close')
     return
   }
 
-  if (shouldReduceMotion()) {
-    dialog.value.close()
-    return
-  }
-
-  prettyModal.close(dialog.value, { duration: 0.4 })
+  setTimeout(() => {
+    if (dialog.value) {
+      dialog.value.close()
+    }
+    isClosing.value = false
+    emit('close')
+  }, DURATION)
 }
 
 function onCancel(event: Event) {
@@ -102,10 +84,6 @@ watch(
   },
   { immediate: true },
 )
-
-onBeforeUnmount(() => {
-  prettyModal.destroy()
-})
 </script>
 
 <template>
@@ -156,12 +134,30 @@ onBeforeUnmount(() => {
   color: var(--color-ink);
   background: transparent;
   overflow: visible;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
+    visibility 0ms 320ms;
+  will-change: opacity, visibility;
+}
+
+.auth-modal[open] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
+    visibility 0ms 0ms;
 }
 
 .auth-modal::backdrop {
-  background: rgb(15 36 24 / 0.45);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  backdrop-filter: blur(20px) saturate(140%);
+  background: rgb(15 36 24 / 0.55);
+  opacity: 0;
+  transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.auth-modal[open]::backdrop {
+  opacity: 1;
 }
 
 .auth-modal__card {
@@ -177,7 +173,17 @@ onBeforeUnmount(() => {
     0 48px 120px -20px rgb(15 36 24 / 0.35),
     0 20px 50px -15px rgb(38 116 81 / 0.2);
   transform-origin: center;
+  transform: scale(0.94) translateY(12px);
+  opacity: 0;
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform, opacity;
+}
+
+.auth-modal[open] .auth-modal__card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
 }
 
 .auth-modal__card::before {
@@ -221,15 +227,17 @@ onBeforeUnmount(() => {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transition:
-    transform 180ms var(--ease-out),
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
     color 180ms ease,
     border-color 180ms ease,
     background 180ms ease;
+  will-change: transform;
   z-index: 2;
 }
 
 .auth-modal__close:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
+  transition-duration: 120ms;
 }
 
 .auth-modal__header {
@@ -290,8 +298,13 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .auth-modal,
+  .auth-modal::backdrop,
   .auth-modal__card {
+    transition: none !important;
     transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
 </style>

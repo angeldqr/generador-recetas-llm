@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
-import gsap from 'gsap'
-import { Flip } from 'gsap/Flip'
-import { CustomEase } from 'gsap/CustomEase'
-import { PrettyModal } from 'prettier-modals'
-
-gsap.registerPlugin(Flip, CustomEase)
+import { ref, watch, nextTick } from 'vue'
 
 const props = defineProps<{
   open: boolean
@@ -18,61 +12,39 @@ const emit = defineEmits<{
 }>()
 
 const dialog = ref<HTMLDialogElement | null>(null)
-const ELASTIC_EASE = 'M0,0 C0.4,0 0.2,1 0.6,1 0.8,1 1,1 1,1'
+const isClosing = ref(false)
 
-const prettyModal = new PrettyModal({
-  anchor: 'origin',
-  duration: 0.7,
-  ease: ELASTIC_EASE,
-  respectReducedMotion: true,
-})
+const DURATION = 400
 
 function shouldReduceMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function resolveTrigger(): HTMLElement | undefined {
-  if (!props.blendyId) return undefined
-  const trigger = document.querySelector<HTMLElement>(
-    `[data-blendy-from="${props.blendyId}"]`,
-  )
-  return trigger ?? undefined
-}
-
 async function openDialog() {
   if (!dialog.value) return
+  if (dialog.value.open) return
 
-  if (shouldReduceMotion()) {
-    if (!dialog.value.open) dialog.value.showModal()
-    gsap.set(dialog.value, { autoAlpha: 1 })
-    return
-  }
-
-  const trigger = resolveTrigger()
-  if (trigger) {
-    prettyModal.open(dialog.value, {
-      trigger,
-      anchor: 'origin',
-      duration: 0.7,
-    })
-  } else {
-    prettyModal.open(dialog.value, {
-      anchor: 'center',
-      duration: 0.7,
-    })
-  }
+  isClosing.value = false
+  dialog.value.showModal()
 }
 
 function closeDialog() {
-  if (!dialog.value || !dialog.value.open) return
+  if (!dialog.value || !dialog.value.open || isClosing.value) return
+  isClosing.value = true
 
   if (shouldReduceMotion()) {
     dialog.value.close()
+    isClosing.value = false
     return
   }
 
-  prettyModal.close(dialog.value, { duration: 0.4 })
+  setTimeout(() => {
+    if (dialog.value) {
+      dialog.value.close()
+      isClosing.value = false
+    }
+  }, DURATION)
 }
 
 function onCancel(event: Event) {
@@ -92,8 +64,9 @@ function onClose() {
 
 watch(
   () => props.open,
-  (isOpen) => {
+  async (isOpen) => {
     if (isOpen) {
+      await nextTick()
       void openDialog()
     } else {
       closeDialog()
@@ -101,10 +74,6 @@ watch(
   },
   { immediate: true },
 )
-
-onBeforeUnmount(() => {
-  prettyModal.destroy()
-})
 </script>
 
 <template>

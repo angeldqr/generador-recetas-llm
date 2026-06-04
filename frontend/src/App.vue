@@ -71,8 +71,13 @@ function handleRecipesLoaded(nextRecipes: Recipe[]) {
             <button class="pill-button" type="button" @click="navigate('auth')">
               Empezar
             </button>
-            <button class="pill-button pill-button--light" type="button" @click="isFlowModalOpen = true">
-              Ver flujo
+            <button
+              class="pill-button pill-button--light"
+              data-blendy-from="flow-modal"
+              type="button"
+              @click="isFlowModalOpen = true"
+            >
+              <span>Ver flujo</span>
             </button>
           </div>
         </div>
@@ -115,6 +120,7 @@ function handleRecipesLoaded(nextRecipes: Recipe[]) {
     </main>
 
     <BaseModal
+      blendy-id="flow-modal"
       :open="isFlowModalOpen"
       title="Flujo de uso"
       @close="isFlowModalOpen = false"

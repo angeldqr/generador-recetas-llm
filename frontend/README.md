@@ -11,3 +11,10 @@ npm run build
 ```
 
 La URL del backend se configura con `VITE_API_BASE_URL`.
+
+## Capturas pendientes para el PDF
+
+- Login o registro.
+- Inventario con ingredientes.
+- Receta recién generada.
+- Historial con calificación visible.

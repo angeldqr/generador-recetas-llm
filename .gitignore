@@ -28,6 +28,8 @@ frontend/.nuxt/
 frontend/.output/
 frontend/.cache/
 frontend/node_modules/.tmp/
+*.tsbuildinfo
+frontend/*.tsbuildinfo
 
 # IDE and OS
 .DS_Store

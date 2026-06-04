@@ -16,6 +16,12 @@
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.6);
   border-radius: 28px;
+  will-change: opacity, transform;
+}
+
+.base-modal__surface {
+  overflow: hidden;
+  border-radius: inherit;
   background:
     linear-gradient(145deg, rgb(255 255 255 / 0.96), rgb(246 247 242 / 0.92)),
     #ffffff;
@@ -63,7 +69,8 @@
   border-radius: 50%;
   color: var(--color-ink);
   background: #ffffff;
-  font-size: 1.45rem;
+  font-size: 1rem;
+  font-weight: 900;
   line-height: 1;
   transition:
     transform 150ms var(--ease-out),
@@ -122,6 +129,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .base-modal__card {
+    opacity: 1;
     transform: none;
   }
 }

@@ -1,24 +1,18 @@
 <script setup lang="ts">
 import InventoryPanel from '../components/InventoryPanel.vue'
 import RecipeGenerator from '../components/RecipeGenerator.vue'
-import type { Ingredient, Recipe } from '../types/api'
+import { useAppData } from '../composables/useAppData'
+import { useAuthSession } from '../composables/useAuthSession'
 
-const props = defineProps<{
-  token: string
-  ingredients: Ingredient[]
-}>()
+const { token } = useAuthSession()
+const { ingredients, setIngredients, prependRecipe } = useAppData()
 
-const emit = defineEmits<{
-  'ingredients-updated': [ingredients: Ingredient[]]
-  'recipe-generated': [recipe: Recipe]
-}>()
-
-function handleIngredientsUpdated(next: Ingredient[]) {
-  emit('ingredients-updated', next)
+function handleIngredientsUpdated(next: Parameters<typeof setIngredients>[0]) {
+  setIngredients(next)
 }
 
-function handleRecipeGenerated(recipe: Recipe) {
-  emit('recipe-generated', recipe)
+function handleRecipeGenerated(recipe: Parameters<typeof prependRecipe>[0]) {
+  prependRecipe(recipe)
 }
 </script>
 
@@ -26,11 +20,14 @@ function handleRecipeGenerated(recipe: Recipe) {
   <article class="page page--inventory" data-route="inventory">
     <div class="inventory-stack">
       <RecipeGenerator
-        :token="props.token"
-        :ingredient-count="props.ingredients.length"
+        :token="token"
+        :ingredient-count="ingredients.length"
         @generated="handleRecipeGenerated"
       />
-      <InventoryPanel :token="props.token" @updated="handleIngredientsUpdated" />
+      <InventoryPanel
+        :token="token"
+        @updated="handleIngredientsUpdated"
+      />
     </div>
   </article>
 </template>

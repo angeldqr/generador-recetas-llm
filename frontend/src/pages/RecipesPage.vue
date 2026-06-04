@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import RecipeHistoryPanel from '../components/RecipeHistoryPanel.vue'
+import { useAppData } from '../composables/useAppData'
+import { useAuthSession } from '../composables/useAuthSession'
 import type { Recipe } from '../types/api'
 
-const props = defineProps<{
-  token: string
-}>()
-
-const emit = defineEmits<{
-  loaded: [recipes: Recipe[]]
-}>()
-
+const { token } = useAuthSession()
+const { setRecipes } = useAppData()
 const router = useRouter()
 
 function handleOpen(recipe: Recipe) {
@@ -18,14 +14,14 @@ function handleOpen(recipe: Recipe) {
 }
 
 function handleLoaded(recipes: Recipe[]) {
-  emit('loaded', recipes)
+  setRecipes(recipes)
 }
 </script>
 
 <template>
   <article class="page page--recipes" data-route="recipes">
     <RecipeHistoryPanel
-      :token="props.token"
+      :token="token"
       @open="handleOpen"
       @loaded="handleLoaded"
     />

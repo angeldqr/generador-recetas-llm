@@ -94,8 +94,18 @@
   background: var(--color-ink);
 }
 
-.header-action {
+.header-actions {
+  display: inline-flex;
   justify-self: end;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   min-height: 42px;
   padding: 0 18px;
   color: #ffffff;
@@ -140,8 +150,16 @@
 
   .brand,
   .nav,
-  .header-action {
+  .header-actions {
     justify-self: stretch;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-action {
+    width: 100%;
   }
 
   .nav {

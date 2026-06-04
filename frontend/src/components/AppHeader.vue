@@ -1,28 +1,54 @@
 <script setup lang="ts">
-defineProps<{
-  activeView: string
+import { computed } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+
+const props = defineProps<{
   isAuthenticated: boolean
 }>()
 
 const emit = defineEmits<{
-  navigate: [view: string]
   logout: []
 }>()
 
-const publicItems = [
-  { id: 'auth', label: 'Acceso' },
-  { id: 'preview', label: 'Vista previa' },
+const router = useRouter()
+
+type NavItem = {
+  id: string
+  label: string
+  to: { name: string }
+}
+
+const publicItems: NavItem[] = [
+  { id: 'auth', label: 'Iniciar sesion', to: { name: 'auth' } },
 ]
 
-const privateItems = [
-  { id: 'inventory', label: 'Inventario' },
-  { id: 'recipes', label: 'Recetas' },
+const privateItems: NavItem[] = [
+  { id: 'inventory', label: 'Inventario', to: { name: 'inventory' } },
+  { id: 'recipes', label: 'Recetas', to: { name: 'recipes' } },
+  { id: 'profile', label: 'Perfil', to: { name: 'profile' } },
 ]
+
+const items = computed(() =>
+  props.isAuthenticated ? privateItems : publicItems,
+)
+
+const brandTarget = computed(() =>
+  props.isAuthenticated ? { name: 'inventory' } : { name: 'welcome' },
+)
+
+async function navigateToBrand() {
+  await router.push(brandTarget.value)
+}
 </script>
 
 <template>
   <header class="app-header">
-    <button class="brand" type="button" @click="emit('navigate', isAuthenticated ? 'inventory' : 'auth')">
+    <button
+      class="brand"
+      type="button"
+      aria-label="Ir al inicio"
+      @click="navigateToBrand"
+    >
       <span class="brand__mark" aria-hidden="true">R</span>
       <span>
         <strong>Recetas LLM</strong>
@@ -31,33 +57,33 @@ const privateItems = [
     </button>
 
     <nav class="nav" aria-label="Principal">
-      <button
-        v-for="item in isAuthenticated ? privateItems : publicItems"
+      <RouterLink
+        v-for="item in items"
         :key="item.id"
+        :to="item.to"
         class="nav__item"
-        :class="{ 'nav__item--active': activeView === item.id }"
-        type="button"
-        @click="emit('navigate', item.id)"
+        active-class="nav__item--active"
       >
         {{ item.label }}
-      </button>
+      </RouterLink>
     </nav>
 
-    <button
-      v-if="isAuthenticated"
-      class="header-action header-action--ghost"
-      type="button"
-      @click="emit('logout')"
-    >
-      Cerrar sesión
-    </button>
-    <button
-      v-else
-      class="header-action"
-      type="button"
-      @click="emit('navigate', 'auth')"
-    >
-      Entrar
-    </button>
+    <div class="header-actions">
+      <button
+        v-if="isAuthenticated"
+        class="header-action header-action--ghost"
+        type="button"
+        @click="emit('logout')"
+      >
+        Cerrar sesion
+      </button>
+      <RouterLink
+        v-else
+        :to="{ name: 'welcome' }"
+        class="header-action"
+      >
+        Inicio
+      </RouterLink>
+    </div>
   </header>
 </template>

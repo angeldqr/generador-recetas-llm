@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useAuthSession } from '../composables/useAuthSession'
 import AuthPanel from '../components/AuthPanel.vue'
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
-const emit = defineEmits<{
-  authenticated: [token: string]
-}>()
-
+const { isAuthenticated, setToken } = useAuthSession()
 const router = useRouter()
+const isReady = ref(false)
+
+if (isAuthenticated.value) {
+  void router.replace('/inventario')
+} else {
+  isReady.value = true
+}
 
 function handleAuthenticated(token: string) {
-  emit('authenticated', token)
+  setToken(token)
   const redirect = router.currentRoute.value.query.redirect
   const target = typeof redirect === 'string' ? redirect : '/inventario'
   void router.replace(target)
@@ -17,7 +23,7 @@ function handleAuthenticated(token: string) {
 </script>
 
 <template>
-  <article class="page page--auth" data-route="auth">
+  <article v-if="isReady" class="page page--auth" data-route="auth">
     <AuthPanel @authenticated="handleAuthenticated" />
   </article>
 </template>

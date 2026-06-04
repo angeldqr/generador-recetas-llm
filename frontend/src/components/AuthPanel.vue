@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { loginUser, registerUser } from '../services/api'
+import BaseButton from './BaseButton.vue'
+import BaseInput from './BaseInput.vue'
 
 const emit = defineEmits<{
   authenticated: [token: string]
@@ -109,32 +111,33 @@ async function submitForm() {
     </div>
 
     <form class="auth-form" @submit.prevent="submitForm">
-      <label v-if="isRegister">
-        <span>Nombre</span>
-        <input v-model="name" autocomplete="name" name="name" placeholder="Tu nombre" />
-      </label>
+      <BaseInput
+        v-if="isRegister"
+        v-model="name"
+        autocomplete="name"
+        label="Nombre"
+        name="name"
+        placeholder="Tu nombre"
+      />
 
-      <label>
-        <span>Correo</span>
-        <input
-          v-model="email"
-          autocomplete="email"
-          name="email"
-          placeholder="tu@correo.com"
-          type="email"
-        />
-      </label>
+      <BaseInput
+        v-model="email"
+        autocomplete="email"
+        inputmode="email"
+        label="Correo"
+        name="email"
+        placeholder="tu@correo.com"
+        type="email"
+      />
 
-      <label>
-        <span>Contrasena</span>
-        <input
-          v-model="password"
-          :autocomplete="isRegister ? 'new-password' : 'current-password'"
-          name="password"
-          placeholder="Minimo 6 caracteres"
-          type="password"
-        />
-      </label>
+      <BaseInput
+        v-model="password"
+        :autocomplete="isRegister ? 'new-password' : 'current-password'"
+        label="Contrasena"
+        name="password"
+        placeholder="Minimo 6 caracteres"
+        type="password"
+      />
 
       <p v-if="errorMessage" class="form-message form-message--error" role="alert">
         {{ errorMessage }}
@@ -143,9 +146,9 @@ async function submitForm() {
         {{ successMessage }}
       </p>
 
-      <button class="auth-form__submit" :disabled="isLoading" type="submit">
+      <BaseButton class="auth-form__submit" :disabled="isLoading" type="submit">
         {{ submitLabel }}
-      </button>
+      </BaseButton>
     </form>
   </article>
 </template>

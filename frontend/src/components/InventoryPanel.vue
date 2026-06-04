@@ -7,6 +7,8 @@ import {
   updateIngredient,
 } from '../services/api'
 import type { Ingredient } from '../types/api'
+import BaseButton from './BaseButton.vue'
+import BaseInput from './BaseInput.vue'
 
 const props = defineProps<{
   token: string
@@ -147,29 +149,35 @@ onMounted(loadIngredients)
     </div>
 
     <form class="ingredient-form" @submit.prevent="submitIngredient">
-      <label>
-        <span>Ingrediente</span>
-        <input v-model="name" placeholder="Arroz" />
-      </label>
-      <label>
-        <span>Cantidad</span>
-        <input v-model="quantity" inputmode="decimal" placeholder="2" type="number" />
-      </label>
-      <label>
-        <span>Unidad</span>
-        <input v-model="unit" placeholder="tazas" />
-      </label>
-      <button class="pill-button ingredient-form__button" :disabled="isSaving" type="submit">
+      <BaseInput
+        v-model="name"
+        label="Ingrediente"
+        placeholder="Arroz"
+      />
+      <BaseInput
+        v-model="quantity"
+        inputmode="decimal"
+        label="Cantidad"
+        placeholder="2"
+        type="number"
+      />
+      <BaseInput
+        v-model="unit"
+        label="Unidad"
+        placeholder="tazas"
+      />
+      <BaseButton class="ingredient-form__button" :disabled="isSaving" type="submit">
         {{ editingId ? 'Guardar cambios' : 'Agregar' }}
-      </button>
-      <button
+      </BaseButton>
+      <BaseButton
         v-if="editingId"
-        class="pill-button pill-button--light ingredient-form__button"
+        class="ingredient-form__button"
+        variant="soft"
         type="button"
         @click="resetForm"
       >
         Cancelar
-      </button>
+      </BaseButton>
     </form>
 
     <p v-if="errorMessage" class="form-message form-message--error">

@@ -42,7 +42,7 @@ onMounted(async () => {
   const token = localStorage.getItem('recetas_llm_token') ?? ''
   if (!token) {
     isLoading.value = false
-    errorMessage.value = 'Necesitas iniciar sesión para ver esta receta.'
+    errorMessage.value = 'Necesitas iniciar sesion para ver esta receta.'
     return
   }
 
@@ -70,10 +70,10 @@ function goBack() {
     <button
       class="recipe-detail__back"
       type="button"
-      :aria-label="`Volver a ${route.name === 'recipe-detail' ? 'recetas' : 'atrás'}`"
+      :aria-label="`Volver a ${route.name === 'recipe-detail' ? 'recetas' : 'atras'}`"
       @click="goBack"
     >
-      <span aria-hidden="true">←</span>
+      <span aria-hidden="true">&larr;</span>
       <span>Volver</span>
     </button>
 
@@ -86,7 +86,7 @@ function goBack() {
     <p v-else-if="errorMessage" class="recipe-detail__error">{{ errorMessage }}</p>
 
     <p v-else-if="!currentRecipe" class="recipe-detail__error">
-      La receta solicitada no existe o ya no está disponible.
+      La receta solicitada no existe o ya no esta disponible.
     </p>
 
     <article

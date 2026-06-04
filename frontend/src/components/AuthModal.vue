@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
           <p class="auth-modal__eyebrow">Acceso</p>
           <h2 class="auth-modal__title">Bienvenido<br>de vuelta</h2>
           <p class="auth-modal__hint">
-            Inicia sesión para gestionar tu inventario y guardar recetas.
+            Inicia sesion para gestionar tu inventario y guardar recetas.
           </p>
         </div>
 

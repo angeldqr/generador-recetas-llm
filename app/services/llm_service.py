@@ -1,4 +1,5 @@
 import json
+import re
 import requests
 
 from app.config import settings
@@ -54,6 +55,14 @@ def clean_json_response(content: str) -> dict:
     elif content.startswith("```"):
         content = content.replace("```", "").strip()
 
+    if not content.startswith("{"):
+        match = re.search(r"\{.*\}", content, flags=re.DOTALL)
+
+        if not match:
+            raise ValueError("La respuesta del LLM no contiene JSON válido")
+
+        content = match.group(0)
+
     data = json.loads(content)
 
     required_fields = [
@@ -97,7 +106,9 @@ def generate_recipe_from_inventory(ingredientes) -> dict:
         "https://openrouter.ai/api/v1/chat/completions",
         headers={
             "Authorization": f"Bearer {settings.openrouter_api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://generador-recetas-llm.local",
+            "X-Title": "Generador de Recetas LLM"
         },
         json={
             "model": settings.openrouter_model,

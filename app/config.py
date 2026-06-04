@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
 
     openrouter_api_key: str | None = None
-    openrouter_model: str = "openai/gpt-4o-mini"
+    openrouter_model: str = "openrouter/free"
 
     model_config = SettingsConfigDict(
         env_file=".env",

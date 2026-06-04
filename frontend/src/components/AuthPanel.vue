@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { loginUser, registerUser } from '../services/api'
 
 const emit = defineEmits<{
   authenticated: [token: string]
 }>()
 
 type AuthMode = 'login' | 'register'
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 const mode = ref<AuthMode>('login')
 const name = ref('')
@@ -69,47 +68,24 @@ async function submitForm() {
   successMessage.value = ''
 
   try {
-    const endpoint = isRegister.value ? '/auth/register' : '/auth/login'
-    const payload = isRegister.value
-      ? {
-          nombre: name.value.trim(),
-          email: email.value.trim(),
-          password: password.value,
-        }
-      : {
-          email: email.value.trim(),
-          password: password.value,
-        }
-
-    const response = await fetch(`${apiBaseUrl}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    const data = await response.json().catch(() => null)
-
-    if (!response.ok) {
-      const detail = data && typeof data.detail === 'string' ? data.detail : ''
-      throw new Error(detail || 'No se pudo completar la solicitud.')
-    }
-
     if (isRegister.value) {
+      await registerUser({
+        nombre: name.value.trim(),
+        email: email.value.trim(),
+        password: password.value,
+      })
       successMessage.value = 'Cuenta creada. Ahora puedes iniciar sesión.'
       mode.value = 'login'
       password.value = ''
       return
     }
 
-    const token = data && typeof data.access_token === 'string' ? data.access_token : ''
+    const data = await loginUser({
+      email: email.value.trim(),
+      password: password.value,
+    })
 
-    if (!token) {
-      throw new Error('La API no devolvió un token válido.')
-    }
-
-    emit('authenticated', token)
+    emit('authenticated', data.access_token)
   } catch (error) {
     errorMessage.value =
       error instanceof Error ? error.message : 'Ocurrió un error inesperado.'

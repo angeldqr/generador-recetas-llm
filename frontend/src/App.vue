@@ -2,10 +2,10 @@
 import { computed, ref } from 'vue'
 import AppShell from './components/AppShell.vue'
 import AuthPanel from './components/AuthPanel.vue'
+import { useAuthSession } from './composables/useAuthSession'
 
 const activeView = ref('auth')
-const authToken = ref('')
-const isAuthenticated = computed(() => Boolean(authToken.value))
+const { isAuthenticated, setToken, clearSession } = useAuthSession()
 
 const heroTitle = computed(() =>
   isAuthenticated.value
@@ -18,12 +18,12 @@ function navigate(view: string) {
 }
 
 function logout() {
-  authToken.value = ''
+  clearSession()
   activeView.value = 'auth'
 }
 
 function handleAuthenticated(token: string) {
-  authToken.value = token
+  setToken(token)
   activeView.value = 'inventory'
 }
 </script>

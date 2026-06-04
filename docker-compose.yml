@@ -1,0 +1,34 @@
+services:
+  api:
+    build: .
+    container_name: recetas-llm-api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.4
+    container_name: recetas-llm-db
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-generador-recetas-llm-db}
+      MYSQL_USER: ${MYSQL_USER:-recetas_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-recetas_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password_change_me}
+    ports:
+      - "3306:3306"
+    volumes:
+      - recetas_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  recetas_mysql_data:

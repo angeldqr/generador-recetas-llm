@@ -30,6 +30,7 @@ frontend/.cache/
 frontend/node_modules/.tmp/
 *.tsbuildinfo
 frontend/*.tsbuildinfo
+test_recipes.db
 
 # IDE and OS
 .DS_Store

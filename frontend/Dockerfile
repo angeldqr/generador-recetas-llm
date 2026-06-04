@@ -11,6 +11,9 @@ RUN npm install
 
 COPY frontend/. .
 
+# Remove any local .env files that might override production URL
+RUN rm -f .env .env.local .env.production.local
+
 # Set production API URL — nginx proxies /api/ to the backend
 ENV VITE_API_BASE_URL=/api
 

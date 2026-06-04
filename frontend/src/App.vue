@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import AppShell from './components/AppShell.vue'
+import AuthPanel from './components/AuthPanel.vue'
 
 const activeView = ref('auth')
-const isAuthenticated = ref(false)
+const authToken = ref('')
+const isAuthenticated = computed(() => Boolean(authToken.value))
 
 const heroTitle = computed(() =>
   isAuthenticated.value
@@ -16,8 +18,13 @@ function navigate(view: string) {
 }
 
 function logout() {
-  isAuthenticated.value = false
+  authToken.value = ''
   activeView.value = 'auth'
+}
+
+function handleAuthenticated(token: string) {
+  authToken.value = token
+  activeView.value = 'inventory'
 }
 </script>
 
@@ -56,7 +63,8 @@ function logout() {
       </section>
 
       <section class="workspace">
-        <article class="workspace__card">
+        <AuthPanel v-if="activeView === 'auth'" @authenticated="handleAuthenticated" />
+        <article v-else class="workspace__card">
           <p class="workspace__label">{{ activeView }}</p>
           <h2>Área de trabajo preparada</h2>
           <p>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { deleteRecipe, getRecipes, rateRecipe } from '../services/api'
 import type { Recipe } from '../types/api'
+import BaseButton from './BaseButton.vue'
+import BaseInput from './BaseInput.vue'
 
 const props = defineProps<{
   token: string
@@ -13,10 +15,40 @@ const emit = defineEmits<{
 }>()
 
 const recipes = ref<Recipe[]>([])
+const searchQuery = ref('')
+const activeDifficulty = ref('all')
 const isLoading = ref(false)
 const busyRecipeId = ref<number | null>(null)
 const errorMessage = ref('')
 const successMessage = ref('')
+
+const difficultyOptions = computed(() => {
+  return Array.from(
+    new Set(
+      recipes.value
+        .map((recipe) => recipe.dificultad)
+        .filter((difficulty) => difficulty.trim().length > 0),
+    ),
+  )
+})
+
+const filteredRecipes = computed(() => {
+  const query = searchQuery.value.trim().toLocaleLowerCase()
+
+  return recipes.value.filter((recipe) => {
+    const matchesSearch =
+      !query || recipe.nombre_plato.toLocaleLowerCase().includes(query)
+    const matchesDifficulty =
+      activeDifficulty.value === 'all' ||
+      recipe.dificultad === activeDifficulty.value
+
+    return matchesSearch && matchesDifficulty
+  })
+})
+
+const hasActiveFilters = computed(
+  () => searchQuery.value.trim().length > 0 || activeDifficulty.value !== 'all',
+)
 
 function publishRecipes(nextRecipes: Recipe[]) {
   recipes.value = nextRecipes
@@ -33,6 +65,11 @@ function formatDate(value: string) {
     month: 'short',
     year: 'numeric',
   }).format(new Date(value))
+}
+
+function clearFilters() {
+  searchQuery.value = ''
+  activeDifficulty.value = 'all'
 }
 
 async function loadRecipes() {
@@ -92,9 +129,9 @@ onMounted(loadRecipes)
         <p class="workspace__label">Historial</p>
         <h2 id="history-title">Recetas guardadas</h2>
       </div>
-      <button class="pill-button pill-button--light" type="button" @click="loadRecipes">
+      <BaseButton variant="soft" type="button" @click="loadRecipes">
         Actualizar
-      </button>
+      </BaseButton>
     </div>
 
     <p v-if="errorMessage" class="form-message form-message--error">
@@ -103,6 +140,36 @@ onMounted(loadRecipes)
     <p v-if="successMessage" class="form-message form-message--success">
       {{ successMessage }}
     </p>
+
+    <div v-if="recipes.length" class="history-filters">
+      <BaseInput
+        v-model="searchQuery"
+        label="Buscar"
+        placeholder="Nombre de receta"
+        type="search"
+      />
+
+      <div class="history-filter-group" aria-label="Filtrar por dificultad">
+        <button
+          class="history-filter"
+          :class="{ 'history-filter--active': activeDifficulty === 'all' }"
+          type="button"
+          @click="activeDifficulty = 'all'"
+        >
+          Todas
+        </button>
+        <button
+          v-for="difficulty in difficultyOptions"
+          :key="difficulty"
+          class="history-filter"
+          :class="{ 'history-filter--active': activeDifficulty === difficulty }"
+          type="button"
+          @click="activeDifficulty = difficulty"
+        >
+          {{ difficulty }}
+        </button>
+      </div>
+    </div>
 
     <div v-if="isLoading" class="history-grid" aria-live="polite">
       <article v-for="item in 2" :key="item" class="history-card history-card--loading">
@@ -113,9 +180,9 @@ onMounted(loadRecipes)
       </article>
     </div>
 
-    <div v-else-if="recipes.length" class="history-grid">
+    <div v-else-if="filteredRecipes.length" class="history-grid">
       <article
-        v-for="recipe in recipes"
+        v-for="recipe in filteredRecipes"
         :key="recipe.id"
         class="history-card history-card--openable"
         role="button"
@@ -127,7 +194,7 @@ onMounted(loadRecipes)
       >
         <header>
           <div>
-            <span>{{ recipe.dificultad }} · {{ formatDate(recipe.fecha_creacion) }}</span>
+            <span>{{ recipe.dificultad }} / {{ formatDate(recipe.fecha_creacion) }}</span>
             <h3>{{ recipe.nombre_plato }}</h3>
           </div>
           <strong>{{ recipe.tiempo_estimado }}</strong>
@@ -143,7 +210,7 @@ onMounted(loadRecipes)
         </section>
 
         <section class="history-card__section">
-          <h4>Preparación</h4>
+          <h4>Preparacion</h4>
           <ol>
             <li v-for="step in recipe.pasos_json" :key="step">
               {{ step }}
@@ -175,10 +242,18 @@ onMounted(loadRecipes)
       </article>
     </div>
 
+    <div v-else-if="recipes.length" class="history-empty-filtered">
+      <h3>No hay recetas con esos filtros</h3>
+      <p>Prueba otro nombre o cambia la dificultad seleccionada.</p>
+      <BaseButton v-if="hasActiveFilters" variant="soft" type="button" @click="clearFilters">
+        Limpiar filtros
+      </BaseButton>
+    </div>
+
     <div v-else class="inventory-empty">
       <p class="workspace__label">Sin historial</p>
       <h3>Genera tu primera receta</h3>
-      <p>Cuando el LLM responda, la receta quedará guardada en esta lista.</p>
+      <p>Cuando el backend responda, la receta queda disponible aqui.</p>
     </div>
   </section>
 </template>

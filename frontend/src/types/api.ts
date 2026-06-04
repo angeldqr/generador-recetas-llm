@@ -38,3 +38,18 @@ export type IngredientUpdatePayload = Partial<IngredientPayload>
 export interface ApiMessage {
   message: string
 }
+
+export interface RecipeIngredient {
+  nombre: string
+  cantidad: string
+}
+
+export interface Recipe {
+  id: number
+  nombre_plato: string
+  ingredientes_json: RecipeIngredient[]
+  pasos_json: string[]
+  tiempo_estimado: string
+  dificultad: string
+  fecha_creacion: string
+}

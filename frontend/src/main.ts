@@ -5,5 +5,6 @@ import './styles/shell.css'
 import './styles/auth.css'
 import './styles/inventory.css'
 import './styles/modal.css'
+import './styles/recipe.css'
 
 createApp(App).mount('#app')

@@ -4,12 +4,14 @@ import AppShell from './components/AppShell.vue'
 import AuthPanel from './components/AuthPanel.vue'
 import BaseModal from './components/BaseModal.vue'
 import InventoryPanel from './components/InventoryPanel.vue'
+import RecipeGenerator from './components/RecipeGenerator.vue'
 import { useAuthSession } from './composables/useAuthSession'
-import type { Ingredient } from './types/api'
+import type { Ingredient, Recipe } from './types/api'
 
 const { token, isAuthenticated, setToken, clearSession } = useAuthSession()
 const activeView = ref(isAuthenticated.value ? 'inventory' : 'auth')
 const ingredients = ref<Ingredient[]>([])
+const recipeCount = ref(0)
 const isFlowModalOpen = ref(false)
 
 const heroTitle = computed(() =>
@@ -35,6 +37,10 @@ function handleAuthenticated(token: string) {
 
 function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
   ingredients.value = nextIngredients
+}
+
+function handleRecipeGenerated(_recipe: Recipe) {
+  recipeCount.value += 1
 }
 </script>
 
@@ -68,7 +74,7 @@ function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
           <strong>{{ ingredients.length }} ingredientes</strong>
           <div class="panel-line"></div>
           <span>Recetas guardadas</span>
-          <strong>0 recetas</strong>
+          <strong>{{ recipeCount }} recetas</strong>
         </aside>
       </section>
 
@@ -77,11 +83,14 @@ function handleIngredientsUpdated(nextIngredients: Ingredient[]) {
           v-if="activeView === 'auth' && !isAuthenticated"
           @authenticated="handleAuthenticated"
         />
-        <InventoryPanel
-          v-else-if="activeView === 'inventory'"
-          :token="token"
-          @updated="handleIngredientsUpdated"
-        />
+        <div v-else-if="activeView === 'inventory'" class="inventory-stack">
+          <RecipeGenerator
+            :ingredient-count="ingredients.length"
+            :token="token"
+            @generated="handleRecipeGenerated"
+          />
+          <InventoryPanel :token="token" @updated="handleIngredientsUpdated" />
+        </div>
         <article v-else class="workspace__card">
           <p class="workspace__label">{{ activeView }}</p>
           <h2>Área de trabajo preparada</h2>

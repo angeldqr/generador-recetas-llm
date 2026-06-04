@@ -5,6 +5,7 @@ import type {
   IngredientPayload,
   IngredientUpdatePayload,
   LoginPayload,
+  Recipe,
   RegisterPayload,
   UserResponse,
 } from '../types/api'
@@ -110,6 +111,13 @@ export function updateIngredient(
 export function deleteIngredient(ingredientId: number, token: string) {
   return apiRequest<ApiMessage>(`/ingredients/${ingredientId}`, {
     method: 'DELETE',
+    token,
+  })
+}
+
+export function generateRecipe(token: string) {
+  return apiRequest<Recipe>('/recipes/generate', {
+    method: 'POST',
     token,
   })
 }

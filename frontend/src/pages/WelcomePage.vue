@@ -3,11 +3,9 @@ import { computed, nextTick, onMounted, ref, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { buildAnchoredBlendyTargetStyle } from '../composables/useAnchoredBlendyTarget'
-import { useAppData } from '../composables/useAppData'
 import { useAuthSession } from '../composables/useAuthSession'
 import { useBlendy } from '../composables/useBlendy'
 
-const { ingredients, recipes } = useAppData()
 const { isAuthenticated } = useAuthSession()
 const router = useRouter()
 const blendy = useBlendy()
@@ -16,14 +14,26 @@ const emit = defineEmits<{
   'open-auth': [blendyId: string]
 }>()
 
-/* ── Flow modal state (Blendy) ── */
 const showFlowModal = ref(false)
 const flowTargetStyle = ref<CSSProperties>({})
+const heroRoot = ref<HTMLElement | null>(null)
+const heroLetters = 'cocina'.split('')
+
+const heroSubtitle = computed(() =>
+  isAuthenticated.value
+    ? 'Abre tu inventario, ajusta ingredientes y genera una receta cuando quieras probar combinaciones.'
+    : 'Guarda ingredientes, genera una propuesta y conserva el historial sin promesas infladas.',
+)
+
+const primaryLabel = computed(() =>
+  isAuthenticated.value ? 'Ir al inventario' : 'Empezar ahora',
+)
 
 async function openFlowModal() {
   flowTargetStyle.value = buildAnchoredBlendyTargetStyle('flow-info', {
     width: 560,
     height: 430,
+    margin: 18,
   })
   showFlowModal.value = true
   await nextTick()
@@ -38,21 +48,6 @@ function closeFlowModal() {
   })
 }
 
-/* ── Hero state ── */
-const heroRoot = ref<HTMLElement | null>(null)
-const heroLetters = 'cocina'.split('')
-
-const heroEyebrow = 'Inventario inteligente'
-const heroSubtitle = computed(() =>
-  isAuthenticated.value
-    ? 'Lo que ya tienes en la nevera se convierte en tu siguiente plato.'
-    : 'Convierte lo que tienes en la nevera en una receta estructurada con IA.',
-)
-
-const primaryLabel = computed(() =>
-  isAuthenticated.value ? 'Ir al inventario' : 'Empezar ahora',
-)
-
 function goToPrimary() {
   if (isAuthenticated.value) {
     void router.push({ name: 'inventory' })
@@ -61,49 +56,56 @@ function goToPrimary() {
   emit('open-auth', 'auth-cta')
 }
 
-/* ── Entrance animation ── */
 function playEntrance() {
   if (!heroRoot.value) return
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   if (reduce) {
-    gsap.set(heroRoot.value.querySelectorAll('[data-reveal]'), {
+    gsap.set(heroRoot.value.querySelectorAll('[data-reveal], .hero-letter'), {
       autoAlpha: 1,
       y: 0,
+      x: 0,
+      rotateX: 0,
     })
     return
   }
 
   gsap.context(() => {
-    const letters = gsap.utils.toArray<HTMLElement>('.hero-letter')
     gsap.fromTo(
-      letters,
-      { autoAlpha: 0, y: 80, rotateX: -60 },
+      '.hero-letter',
+      { autoAlpha: 0, y: 76, rotateX: -58 },
       {
-        autoAlpha: 1, y: 0, rotateX: 0,
-        duration: 1.0, ease: 'expo.out', stagger: 0.05,
+        autoAlpha: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 1.05,
+        ease: 'expo.out',
+        stagger: 0.045,
       },
     )
     gsap.fromTo(
-      '.hero-eyebrow',
-      { autoAlpha: 0, y: 18, filter: 'blur(4px)' },
-      { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'power3.out' },
-    )
-    gsap.fromTo(
-      '.hero-subtitle',
-      { autoAlpha: 0, y: 16 },
-      { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', delay: 0.55 },
-    )
-    gsap.fromTo(
-      '.hero-actions',
-      { autoAlpha: 0, y: 14 },
-      { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.7 },
-    )
-    gsap.fromTo(
-      '.hero-summary',
-      { autoAlpha: 0, y: 28, scale: 0.94, filter: 'blur(4px)' },
+      '[data-reveal]',
+      { autoAlpha: 0, y: 20, filter: 'blur(5px)' },
       {
-        autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)',
-        duration: 0.9, ease: 'expo.out', delay: 0.85,
+        autoAlpha: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 0.72,
+        ease: 'power3.out',
+        stagger: 0.08,
+        delay: 0.38,
+      },
+    )
+    gsap.fromTo(
+      '.hero-proof',
+      { autoAlpha: 0, x: 28, filter: 'blur(6px)' },
+      {
+        autoAlpha: 1,
+        x: 0,
+        filter: 'blur(0px)',
+        duration: 0.9,
+        ease: 'expo.out',
+        delay: 0.62,
       },
     )
   }, heroRoot)
@@ -111,22 +113,17 @@ function playEntrance() {
 
 onMounted(() => {
   playEntrance()
-  // Rescan blendy sources after mount (page is lazy-loaded)
   blendy.update()
 })
 </script>
 
 <template>
-  <article
-    ref="heroRoot"
-    class="welcome-root"
-    data-route="welcome"
-  >
+  <article ref="heroRoot" class="welcome-root" data-route="welcome">
     <section class="welcome-hero">
       <div class="welcome-hero__main">
         <p class="hero-eyebrow" data-reveal>
           <span class="hero-eyebrow__dot" aria-hidden="true"></span>
-          {{ heroEyebrow }}
+          Recetas LLM
         </p>
 
         <h1 class="hero-title" aria-label="cocina">
@@ -134,7 +131,7 @@ onMounted(() => {
             v-for="(letter, i) in heroLetters"
             :key="`${letter}-${i}`"
             class="hero-letter"
-            :aria-hidden="true"
+            aria-hidden="true"
           >
             {{ letter }}
           </span>
@@ -170,35 +167,19 @@ onMounted(() => {
             data-blendy-from="flow-info"
             @click="openFlowModal"
           >
-            <span class="cta__label">Ver como funciona</span>
+            <span class="cta__label">Ver flujo</span>
           </button>
         </div>
       </div>
 
-      <aside class="hero-summary" data-reveal aria-label="Resumen de la aplicacion">
-        <div class="hero-summary__header">
-          <span class="hero-summary__label">Tu cocina</span>
-          <span class="hero-summary__status">
-            <span class="hero-summary__pulse" aria-hidden="true"></span>
-            en vivo
-          </span>
-        </div>
-        <div class="hero-summary__row">
-          <strong>{{ ingredients.length }}</strong>
-          <span>ingredientes listos</span>
-        </div>
-        <div class="hero-summary__divider"></div>
-        <div class="hero-summary__row">
-          <strong>{{ recipes.length }}</strong>
-          <span>recetas guardadas</span>
-        </div>
-        <p class="hero-summary__hint">
-          Cada vez que generas una receta, el LLM usa exactamente lo que tienes.
-        </p>
+      <aside class="hero-proof" data-reveal aria-label="Flujo de trabajo">
+        <span class="hero-proof__rule" aria-hidden="true"></span>
+        <p>inventario</p>
+        <p>receta</p>
+        <p>historial</p>
       </aside>
     </section>
 
-    <!-- Flow Modal — Blendy morph from "Ver como funciona" button -->
     <Teleport to="body">
       <template v-if="showFlowModal">
         <div class="flow-backdrop" @click="closeFlowModal"></div>
@@ -209,7 +190,7 @@ onMounted(() => {
         >
           <div class="flow-modal-card">
             <header class="flow-modal-header">
-              <h2>Como funciona</h2>
+              <h2>Flujo real</h2>
               <button
                 class="flow-modal-close"
                 type="button"
@@ -223,10 +204,10 @@ onMounted(() => {
               </button>
             </header>
             <ol class="modal-flow">
-              <li><span>1</span>Crear cuenta o iniciar sesion</li>
-              <li><span>2</span>Registrar ingredientes disponibles</li>
-              <li><span>3</span>Generar receta estructurada con IA</li>
-              <li><span>4</span>Guardar, calificar o eliminar del historial</li>
+              <li><span>1</span>Crear cuenta o iniciar sesion.</li>
+              <li><span>2</span>Registrar cantidades y unidades.</li>
+              <li><span>3</span>Pedir una propuesta de receta al backend.</li>
+              <li><span>4</span>Revisar, calificar o borrar del historial.</li>
             </ol>
           </div>
         </div>
@@ -237,30 +218,47 @@ onMounted(() => {
 
 <style scoped>
 .welcome-root {
+  position: relative;
   height: 100%;
   width: min(1240px, 100%);
   margin: 0 auto;
-  perspective: 1200px;
   overflow: hidden;
+  perspective: 1200px;
+}
+
+.welcome-root::before {
+  content: "";
+  position: absolute;
+  inset: clamp(18px, 4vw, 42px) 0 auto auto;
+  width: min(44vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 36% 30%, rgb(255 255 255 / 0.75), transparent 24%),
+    conic-gradient(from 220deg, rgb(38 116 81 / 0.22), rgb(194 135 58 / 0.24), rgb(15 36 24 / 0.08), rgb(38 116 81 / 0.22));
+  filter: blur(6px);
+  opacity: 0.82;
 }
 
 .welcome-hero {
+  position: relative;
   height: 100%;
-  max-height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
-  gap: clamp(28px, 5vw, 64px);
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 180px);
+  gap: clamp(22px, 5vw, 74px);
   align-items: center;
-  padding: clamp(14px, 3vh, 34px) 0;
+  padding: clamp(8px, 2.8vh, 28px) 0;
   overflow: hidden;
 }
 
 .welcome-hero__main {
   display: grid;
-  gap: clamp(14px, 2.7vh, 28px);
+  gap: clamp(12px, 2.4vh, 24px);
+  align-content: center;
+  min-width: 0;
 }
 
-/* ── Eyebrow ── */
 .hero-eyebrow {
   margin: 0;
   display: inline-flex;
@@ -271,13 +269,15 @@ onMounted(() => {
   border: 1px solid rgb(15 36 24 / 0.1);
   border-radius: var(--radius-button);
   color: var(--color-ink);
-  background: rgb(254 253 248 / 0.7);
+  background: rgb(254 253 248 / 0.76);
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  box-shadow: 0 8px 24px -16px rgb(15 36 24 / 0.3);
+  box-shadow: 0 12px 30px -20px rgb(15 36 24 / 0.3);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
 .hero-eyebrow__dot {
@@ -288,55 +288,52 @@ onMounted(() => {
   box-shadow: 0 0 0 4px rgb(38 116 81 / 0.18);
 }
 
-/* ── Title ── */
 .hero-title {
   margin: 0;
-  font-family: "Bricolage Grotesque", system-ui, serif;
-  font-weight: 700;
-  font-size: clamp(5rem, min(18vw, 24vh), 16rem);
-  line-height: 0.82;
-  letter-spacing: -0.04em;
-  color: var(--color-ink);
   display: flex;
-  flex-wrap: wrap;
-  transform-style: preserve-3d;
+  flex-wrap: nowrap;
+  color: var(--color-ink);
+  font-family: "Bricolage Grotesque", system-ui, serif;
+  font-size: clamp(5.6rem, min(18vw, 23vh), 15.5rem);
+  font-weight: 760;
+  letter-spacing: -0.04em;
+  line-height: 0.78;
   text-transform: lowercase;
+  transform-style: preserve-3d;
 }
 
 .hero-letter {
   display: inline-block;
   cursor: default;
-  user-select: none;
   transform-origin: 50% 80%;
   transition:
-    font-weight 280ms var(--ease-out),
-    transform 320ms var(--ease-out),
     color 320ms ease,
+    font-weight 280ms var(--ease-out),
     margin 280ms var(--ease-out),
-    text-shadow 320ms ease;
+    text-shadow 320ms ease,
+    transform 320ms var(--ease-out);
+  user-select: none;
   will-change: transform;
 }
 
 .hero-letter:hover {
-  font-weight: 800;
-  transform: translateY(-6px) scale(1.06);
   color: var(--color-accent);
-  margin: 0 6px;
-  text-shadow: 0 12px 32px rgb(38 116 81 / 0.32);
+  font-weight: 820;
+  margin: 0 5px;
+  transform: translateY(-6px) scale(1.045);
+  text-shadow: 0 14px 34px rgb(38 116 81 / 0.3);
 }
 
-/* ── Subtitle ── */
 .hero-subtitle {
+  max-width: 58ch;
   margin: 0;
-  max-width: 56ch;
   color: var(--color-ink-soft);
   font-family: "DM Sans", system-ui;
-  font-size: clamp(1rem, min(1.6vw, 2.8vh), 1.35rem);
+  font-size: clamp(1rem, min(1.5vw, 2.4vh), 1.32rem);
   line-height: 1.5;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
-/* ── CTA buttons ── */
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -347,19 +344,20 @@ onMounted(() => {
 .cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   min-height: 54px;
   padding: 0 28px;
   border-radius: var(--radius-button);
   font-family: "DM Sans", system-ui;
-  font-weight: 700;
   font-size: 0.98rem;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: 0;
   transition:
-    transform 200ms var(--ease-out),
-    box-shadow 200ms ease,
-    background 200ms ease,
-    color 200ms ease;
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease,
+    transform 220ms var(--ease-out);
 }
 
 .cta__inner {
@@ -375,147 +373,68 @@ onMounted(() => {
     var(--color-accent);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.18),
-    0 22px 50px -16px rgb(38 116 81 / 0.55);
+    0 24px 54px -16px rgb(38 116 81 / 0.56);
 }
 
 .cta--ghost {
   color: var(--color-ink);
-  background: var(--color-panel);
+  background: rgb(254 253 248 / 0.78);
   box-shadow:
     inset 0 0 0 1px rgb(15 36 24 / 0.1),
-    0 14px 30px -18px rgb(15 36 24 / 0.18);
+    0 16px 34px -20px rgb(15 36 24 / 0.2);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
 .cta__arrow {
   display: inline-grid;
-  place-items: center;
   width: 28px;
   height: 28px;
+  place-items: center;
   border-radius: 50%;
-  background: rgb(255 255 255 / 0.18);
   color: inherit;
-  transition: transform 220ms var(--ease-out);
-}
-
-.cta--primary .cta__arrow {
   background: rgb(255 255 255 / 0.22);
+  transition: transform 220ms var(--ease-out);
 }
 
 .cta:active {
   transform: scale(0.97);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .cta--primary:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 28px 60px -16px rgb(38 116 81 / 0.6);
-  }
-
-  .cta--primary:hover .cta__arrow {
-    transform: translateX(3px);
-  }
-
-  .cta--ghost:hover {
-    transform: translateY(-1px);
-    background: var(--color-soft-2);
-  }
-}
-
-/* ── Summary card ── */
-.hero-summary {
+.hero-proof {
   display: grid;
-  gap: 14px;
-  padding: 28px;
-  border: 1px solid rgb(15 36 24 / 0.08);
-  border-radius: var(--radius-card);
-  background:
-    linear-gradient(160deg, rgb(254 253 248 / 0.92), rgb(244 241 232 / 0.88)),
-    var(--color-panel);
-  box-shadow: var(--shadow-card);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  transform-origin: center;
-}
-
-.hero-summary__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--color-muted);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  gap: clamp(10px, 1.8vh, 18px);
+  justify-items: end;
+  align-self: center;
+  color: var(--color-ink);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(0.74rem, 1vw, 0.86rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.hero-summary__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-accent-strong);
+.hero-proof p {
+  margin: 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
 }
 
-.hero-summary__pulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  box-shadow: 0 0 0 0 rgb(38 116 81 / 0.5);
-  animation: pulse 2.2s ease-out infinite;
+.hero-proof__rule {
+  width: 1px;
+  height: min(24vh, 180px);
+  background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgb(38 116 81 / 0.45); }
-  70% { box-shadow: 0 0 0 12px rgb(38 116 81 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(38 116 81 / 0); }
-}
-
-.hero-summary__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.hero-summary__row strong {
-  font-family: "Bricolage Grotesque", system-ui;
-  font-size: 2.4rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--color-ink);
-}
-
-.hero-summary__row span {
-  color: var(--color-muted);
-  font-size: 0.92rem;
-  text-align: right;
-}
-
-.hero-summary__divider {
-  height: 1px;
-  background: var(--color-line);
-  margin: 4px 0;
-}
-
-.hero-summary__hint {
-  margin: 6px 0 0;
-  color: var(--color-muted);
-  font-size: 0.82rem;
-  line-height: 1.5;
-}
-
-/* ── Flow modal (Blendy target) ── */
 .flow-backdrop {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgb(15 36 24 / 0.35);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
+  background:
+    radial-gradient(circle at var(--blendy-backdrop-x, 50%) var(--blendy-backdrop-y, 50%), rgb(38 116 81 / 0.18), transparent 34%),
+    rgb(15 36 24 / 0.36);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
   animation: flow-fade-in 0.28s var(--ease-out) forwards;
 }
 
@@ -539,13 +458,13 @@ onMounted(() => {
   max-height: inherit;
   overflow: auto;
   border: 1px solid rgb(15 36 24 / 0.08);
-  border-radius: 32px;
+  border-radius: 30px;
   background:
-    linear-gradient(160deg, rgb(254 253 248 / 0.98), rgb(244 241 232 / 0.94)),
+    linear-gradient(150deg, rgb(254 253 248 / 0.98), rgb(236 240 226 / 0.96)),
     var(--color-panel);
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.08),
-    0 48px 120px -20px rgb(15 36 24 / 0.35),
+    0 48px 120px -20px rgb(15 36 24 / 0.36),
     0 20px 50px -15px rgb(38 116 81 / 0.18);
   transform-origin: var(--blendy-origin-x, 50%) var(--blendy-origin-y, 50%);
 }
@@ -556,12 +475,11 @@ onMounted(() => {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 20% 0%, rgb(255 255 255 / 0.7), transparent 50%);
-  mix-blend-mode: lighten;
+  background: radial-gradient(circle at 20% 0%, rgb(255 255 255 / 0.7), transparent 50%);
 }
 
 .flow-modal-header {
+  position: relative;
   display: flex;
   gap: 18px;
   align-items: start;
@@ -571,19 +489,19 @@ onMounted(() => {
 
 .flow-modal-header h2 {
   margin: 0;
+  color: var(--color-ink);
   font-family: "Bricolage Grotesque", system-ui;
   font-size: clamp(2rem, 4vw, 2.6rem);
-  font-weight: 700;
+  font-weight: 760;
   line-height: 0.95;
-  letter-spacing: -0.025em;
-  color: var(--color-ink);
+  letter-spacing: -0.02em;
 }
 
 .flow-modal-close {
-  width: 44px;
-  height: 44px;
   display: grid;
   flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
   place-items: center;
   border: 1px solid rgb(15 36 24 / 0.1);
   border-radius: 50%;
@@ -591,14 +509,9 @@ onMounted(() => {
   background: var(--color-panel);
   line-height: 1;
   transition:
-    transform 160ms var(--ease-out),
+    background 180ms ease,
     color 180ms ease,
-    background 180ms ease;
-}
-
-.flow-modal-close:hover {
-  color: var(--color-accent-strong);
-  background: var(--color-accent-soft);
+    transform 160ms var(--ease-out);
 }
 
 .flow-modal-close:active {
@@ -606,6 +519,7 @@ onMounted(() => {
 }
 
 .modal-flow {
+  position: relative;
   display: grid;
   gap: 10px;
   margin: 0;
@@ -619,19 +533,19 @@ onMounted(() => {
   gap: 14px;
   align-items: center;
   padding: 14px 16px;
-  color: var(--color-ink);
-  background: var(--color-soft);
   border: 1px solid rgb(15 36 24 / 0.06);
   border-radius: 18px;
-  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-soft);
   font-size: 0.95rem;
-  letter-spacing: -0.005em;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .modal-flow span {
+  display: grid;
   width: 32px;
   height: 32px;
-  display: grid;
   place-items: center;
   border-radius: 50%;
   color: var(--color-panel);
@@ -640,59 +554,100 @@ onMounted(() => {
     var(--color-accent);
   font-family: "Bricolage Grotesque", system-ui;
   font-size: 0.95rem;
-  font-weight: 700;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.2),
-    0 8px 18px -8px rgb(38 116 81 / 0.5);
+  font-weight: 760;
 }
 
-/* ── Responsive ── */
-@media (max-width: 980px) {
+@media (hover: hover) and (pointer: fine) {
+  .cta--primary:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 30px 66px -16px rgb(38 116 81 / 0.62);
+  }
+
+  .cta--primary:hover .cta__arrow {
+    transform: translateX(3px);
+  }
+
+  .cta--ghost:hover,
+  .flow-modal-close:hover {
+    color: var(--color-accent-strong);
+    background: var(--color-accent-soft);
+  }
+}
+
+@media (max-width: 820px) {
   .welcome-hero {
     grid-template-columns: 1fr;
-    gap: 22px;
   }
-  .hero-summary {
-    order: 2;
-    padding: 20px;
+
+  .hero-proof {
+    position: absolute;
+    right: 0;
+    bottom: 12px;
+    grid-auto-flow: column;
+    align-items: center;
+  }
+
+  .hero-proof p {
+    writing-mode: initial;
+    transform: none;
+  }
+
+  .hero-proof__rule {
+    width: 56px;
+    height: 1px;
   }
 }
 
 @media (max-width: 600px) {
+  .welcome-root {
+    width: min(100% - 24px, 560px);
+  }
+
   .welcome-hero {
     align-content: center;
+    padding-bottom: 46px;
   }
 
   .hero-title {
-    font-size: clamp(4rem, min(25vw, 20vh), 8rem);
+    font-size: clamp(4.1rem, min(24vw, 18vh), 7.6rem);
   }
 
-  .hero-summary {
-    display: none;
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .cta {
-    flex: 1;
-    justify-content: center;
+    width: 100%;
+  }
+
+  .hero-proof {
+    left: 0;
+    right: auto;
+    justify-items: start;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
   }
 }
 
-@media (max-height: 760px) and (min-width: 981px) {
+@media (max-height: 720px) {
   .hero-eyebrow {
     padding-block: 6px;
   }
 
-  .hero-summary {
-    gap: 10px;
-    padding: 22px;
+  .hero-title {
+    font-size: clamp(4.2rem, min(15vw, 20vh), 12rem);
   }
 
-  .hero-summary__hint {
-    display: none;
+  .hero-subtitle {
+    max-width: 62ch;
+    font-size: 1rem;
   }
 
   .cta {
-    min-height: 50px;
+    min-height: 48px;
   }
 }
 

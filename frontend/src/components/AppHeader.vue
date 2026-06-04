@@ -33,7 +33,7 @@ async function navigateToBrand() {
       <span class="brand__mark" aria-hidden="true">R</span>
       <span>
         <strong>Recetas LLM</strong>
-        <small>Inventario inteligente</small>
+        <small>Cocina asistida</small>
       </span>
     </button>
 
@@ -89,7 +89,7 @@ async function navigateToBrand() {
         data-blendy-from="auth-header"
         @click="emit('open-auth', 'auth-header')"
       >
-        <span>Inicio</span>
+        <span>Entrar</span>
       </button>
     </div>
   </header>

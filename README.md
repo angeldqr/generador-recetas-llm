@@ -21,7 +21,7 @@ copy .env.example .env
 Para la base local creada como `generador-recetas-llm-db`, ajusta la clave real de PostgreSQL:
 
 ```env
-DATABASE_URL=postgresql+psycopg2://postgres:TU_PASSWORD@localhost:5432/generador-recetas-llm-db
+DATABASE_URL=postgresql+psycopg2://recetas_user:recetas_password_dev@localhost:5432/generador-recetas-llm-db
 SECRET_KEY=una-clave-larga-y-secreta
 OPENROUTER_API_KEY=sk-or-tu-api-key
 OPENROUTER_MODEL=openrouter/free

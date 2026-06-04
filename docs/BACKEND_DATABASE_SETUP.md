@@ -18,11 +18,11 @@ Ya existe un `.env` local en la raiz del proyecto. Ese archivo esta ignorado por
 Antes de correr el backend, cambia esta parte por la clave real de PostgreSQL:
 
 ```env
-DATABASE_URL=postgresql+psycopg2://postgres:CAMBIA_ESTA_PASSWORD_POSTGRES@localhost:5432/generador-recetas-llm-db
-POSTGRES_PASSWORD=CAMBIA_ESTA_PASSWORD_POSTGRES
+DATABASE_URL=postgresql+psycopg2://recetas_user:recetas_password_dev@localhost:5432/generador-recetas-llm-db
+POSTGRES_PASSWORD=recetas_password_dev
 ```
 
-Si tu usuario de PostgreSQL no es `postgres`, cambia tambien el usuario en `DATABASE_URL` y `POSTGRES_USER`.
+El usuario local de desarrollo sugerido es `recetas_user`.
 
 ## Crear las tablas desde Python
 

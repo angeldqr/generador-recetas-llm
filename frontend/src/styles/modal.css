@@ -1,17 +1,182 @@
 .base-modal {
-  width: min(560px, calc(100% - 24px));
-  max-width: 560px;
-  border: 0;
-  padding: 0;
-  color: var(--color-ink);
-  background: transparent;
-  overflow: visible;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(15 36 24 / 0.5);
+  opacity: 1;
+  transition: opacity 300ms ease;
+  will-change: opacity;
+}
+
+.base-modal.is-closing {
   opacity: 0;
-  visibility: hidden;
+}
+
+.base-modal__card {
+  position: relative;
+  width: min(560px, 100%);
+  max-width: 560px;
+  overflow: hidden;
+  border: 1px solid rgb(15 36 24 / 0.08);
+  border-radius: 32px;
+  background:
+    linear-gradient(160deg, rgb(254 253 248 / 0.98), rgb(244 241 232 / 0.94)),
+    var(--color-panel);
+  box-shadow: var(--shadow-pop);
+  transform: scale(0.96) translateY(8px);
+  opacity: 0;
   transition:
-    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
-    visibility 0ms 320ms;
-  will-change: opacity, visibility;
+    transform 350ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 300ms ease;
+  will-change: transform, opacity;
+}
+
+.base-modal:not(.is-closing) .base-modal__card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.base-modal.is-closing .base-modal__card {
+  transform: scale(0.96) translateY(8px);
+  opacity: 0;
+  transition:
+    transform 280ms ease-in,
+    opacity 250ms ease;
+}
+
+.base-modal__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      rgb(255 255 255 / 0.7),
+      transparent 50%
+    );
+  mix-blend-mode: lighten;
+}
+
+.base-modal__surface {
+  position: relative;
+  border-radius: inherit;
+}
+
+.base-modal__header {
+  display: flex;
+  gap: 18px;
+  align-items: start;
+  justify-content: space-between;
+  padding: 28px 28px 0;
+}
+
+.base-modal__header h2 {
+  margin: 0;
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+}
+
+.base-modal__close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(15 36 24 / 0.1);
+  border-radius: 50%;
+  color: var(--color-ink);
+  background: var(--color-panel);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform 200ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+  will-change: transform;
+}
+
+.base-modal__close:active {
+  transform: scale(0.92);
+  transition-duration: 100ms;
+}
+
+.base-modal__body {
+  padding: 18px 28px 28px;
+  color: var(--color-ink-soft);
+  font-family: "DM Sans", system-ui;
+  line-height: 1.6;
+}
+
+.modal-flow {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modal-flow li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  color: var(--color-ink);
+  background: var(--color-soft);
+  border: 1px solid rgb(15 36 24 / 0.06);
+  border-radius: 18px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+}
+
+.modal-flow span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-panel);
+  background:
+    linear-gradient(180deg, #3a8a64, var(--color-accent) 80%),
+    var(--color-accent);
+  font-family: "Bricolage Grotesque", system-ui;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 8px 18px -8px rgb(38 116 81 / 0.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .base-modal__close:hover {
+    color: var(--color-accent-strong);
+    border-color: rgb(38 116 81 / 0.3);
+    background: var(--color-accent-soft);
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-modal,
+  .base-modal__card {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
 .base-modal[open] {

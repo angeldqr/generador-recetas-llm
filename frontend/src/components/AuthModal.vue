@@ -12,60 +12,51 @@ const emit = defineEmits<{
   authenticated: [token: string]
 }>()
 
-const dialog = ref<HTMLDialogElement | null>(null)
+const overlay = ref<HTMLDivElement | null>(null)
 const isClosing = ref(false)
+const isOpen = ref(false)
 
-const DURATION = 420
+const DURATION = 350
 
 function shouldReduceMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-async function openDialog() {
-  if (!dialog.value) return
-  if (dialog.value.open) return
-
+async function openModal() {
+  if (isOpen.value) return
   isClosing.value = false
-  dialog.value.showModal()
+  isOpen.value = true
+  document.body.style.overflow = 'hidden'
 }
 
-function closeDialog() {
-  if (!dialog.value || !dialog.value.open || isClosing.value) {
+function closeModal() {
+  if (!isOpen.value || isClosing.value) {
     emit('close')
     return
   }
   isClosing.value = true
 
   if (shouldReduceMotion()) {
-    dialog.value.close()
+    isOpen.value = false
     isClosing.value = false
+    document.body.style.overflow = ''
     emit('close')
     return
   }
 
   setTimeout(() => {
-    if (dialog.value) {
-      dialog.value.close()
-    }
+    isOpen.value = false
     isClosing.value = false
+    document.body.style.overflow = ''
     emit('close')
   }, DURATION)
 }
 
-function onCancel(event: Event) {
-  event.preventDefault()
-  closeDialog()
-}
-
-function onClick(event: MouseEvent) {
-  if (event.target === dialog.value) {
-    closeDialog()
+function onClickOverlay(event: MouseEvent) {
+  if (event.target === overlay.value) {
+    closeModal()
   }
-}
-
-function onClose() {
-  emit('close')
 }
 
 function handleAuthenticated(token: string) {
@@ -74,12 +65,12 @@ function handleAuthenticated(token: string) {
 
 watch(
   () => props.open,
-  async (isOpen) => {
-    if (isOpen) {
+  async (isOpenProp) => {
+    if (isOpenProp) {
       await nextTick()
-      void openDialog()
+      void openModal()
     } else {
-      closeDialog()
+      closeModal()
     }
   },
   { immediate: true },
@@ -87,13 +78,14 @@ watch(
 </script>
 
 <template>
-  <dialog
-    ref="dialog"
+  <div
+    v-if="isOpen || isClosing"
+    ref="overlay"
     class="auth-modal"
-    role="document"
-    @cancel="onCancel"
-    @close="onClose"
-    @click="onClick"
+    :class="{ 'is-closing': isClosing }"
+    role="dialog"
+    aria-modal="true"
+    @click="onClickOverlay"
   >
     <article class="auth-modal__card">
       <div class="auth-modal__surface">
@@ -101,7 +93,7 @@ watch(
           class="auth-modal__close"
           type="button"
           aria-label="Cerrar modal"
-          @click="closeDialog"
+          @click="closeModal"
         >
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -122,46 +114,32 @@ watch(
         </div>
       </div>
     </article>
-  </dialog>
+  </div>
 </template>
 
 <style scoped>
 .auth-modal {
-  width: min(520px, calc(100% - 32px));
-  max-width: 520px;
-  border: 0;
-  padding: 0;
-  color: var(--color-ink);
-  background: transparent;
-  overflow: visible;
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
-    visibility 0ms 320ms;
-  will-change: opacity, visibility;
-}
-
-.auth-modal[open] {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(15 36 24 / 0.5);
   opacity: 1;
-  visibility: visible;
-  transition:
-    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
-    visibility 0ms 0ms;
+  transition: opacity 300ms ease;
+  will-change: opacity;
 }
 
-.auth-modal::backdrop {
-  background: rgb(15 36 24 / 0.55);
+.auth-modal.is-closing {
   opacity: 0;
-  transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.auth-modal[open]::backdrop {
-  opacity: 1;
 }
 
 .auth-modal__card {
   position: relative;
+  width: min(520px, 100%);
+  max-width: 520px;
   overflow: hidden;
   border: 1px solid rgb(15 36 24 / 0.08);
   border-radius: 32px;
@@ -173,17 +151,25 @@ watch(
     0 48px 120px -20px rgb(15 36 24 / 0.35),
     0 20px 50px -15px rgb(38 116 81 / 0.2);
   transform-origin: center;
-  transform: scale(0.94) translateY(12px);
+  transform: scale(0.96) translateY(8px);
   opacity: 0;
   transition:
-    transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 320ms cubic-bezier(0.23, 1, 0.32, 1);
+    transform 350ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 300ms ease;
   will-change: transform, opacity;
 }
 
-.auth-modal[open] .auth-modal__card {
+.auth-modal:not(.is-closing) .auth-modal__card {
   transform: scale(1) translateY(0);
   opacity: 1;
+}
+
+.auth-modal.is-closing .auth-modal__card {
+  transform: scale(0.96) translateY(8px);
+  opacity: 0;
+  transition:
+    transform 280ms ease-in,
+    opacity 250ms ease;
 }
 
 .auth-modal__card::before {
@@ -227,7 +213,7 @@ watch(
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transition:
-    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 200ms ease,
     color 180ms ease,
     border-color 180ms ease,
     background 180ms ease;
@@ -237,7 +223,7 @@ watch(
 
 .auth-modal__close:active {
   transform: scale(0.92);
-  transition-duration: 120ms;
+  transition-duration: 100ms;
 }
 
 .auth-modal__header {
@@ -299,12 +285,10 @@ watch(
 
 @media (prefers-reduced-motion: reduce) {
   .auth-modal,
-  .auth-modal::backdrop,
   .auth-modal__card {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
-    visibility: visible !important;
   }
 }
 </style>

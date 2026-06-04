@@ -33,22 +33,11 @@ async function navigateToBrand() {
       <span class="brand__mark" aria-hidden="true">R</span>
       <span>
         <strong>Recetas LLM</strong>
-        <small>Cocina asistida</small>
       </span>
     </button>
 
     <nav class="nav" aria-label="Principal">
-      <template v-if="!isAuthenticated">
-        <button
-          class="nav__item"
-          type="button"
-          data-blendy-from="auth-nav"
-          @click="emit('open-auth', 'auth-nav')"
-        >
-          <span>Iniciar sesion</span>
-        </button>
-      </template>
-      <template v-else>
+      <template v-if="isAuthenticated">
         <RouterLink
           :to="{ name: 'inventory' }"
           class="nav__item"
@@ -86,7 +75,6 @@ async function navigateToBrand() {
         v-else
         class="header-action"
         type="button"
-        data-blendy-from="auth-header"
         @click="emit('open-auth', 'auth-header')"
       >
         <span>Entrar</span>

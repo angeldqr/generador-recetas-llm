@@ -25,13 +25,13 @@
   top: 0;
   z-index: 20;
   width: min(1240px, calc(100% - 32px));
-  min-height: 76px;
-  display: grid;
-  grid-template-columns: minmax(190px, 1fr) auto minmax(120px, 1fr);
-  gap: 16px;
+  min-height: 64px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin: 0 auto;
-  padding: 14px 0;
+  padding: 12px 0;
 }
 
 .brand,

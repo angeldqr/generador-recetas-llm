@@ -11,65 +11,58 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const dialog = ref<HTMLDialogElement | null>(null)
+const overlay = ref<HTMLDivElement | null>(null)
 const isClosing = ref(false)
+const isOpen = ref(false)
 
-const DURATION = 400
+const DURATION = 350
 
 function shouldReduceMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-async function openDialog() {
-  if (!dialog.value) return
-  if (dialog.value.open) return
-
+async function openModal() {
+  if (isOpen.value) return
   isClosing.value = false
-  dialog.value.showModal()
+  isOpen.value = true
+  document.body.style.overflow = 'hidden'
 }
 
-function closeDialog() {
-  if (!dialog.value || !dialog.value.open || isClosing.value) return
+function closeModal() {
+  if (!isOpen.value || isClosing.value) return
   isClosing.value = true
 
   if (shouldReduceMotion()) {
-    dialog.value.close()
+    isOpen.value = false
     isClosing.value = false
+    document.body.style.overflow = ''
+    emit('close')
     return
   }
 
   setTimeout(() => {
-    if (dialog.value) {
-      dialog.value.close()
-      isClosing.value = false
-    }
+    isOpen.value = false
+    isClosing.value = false
+    document.body.style.overflow = ''
+    emit('close')
   }, DURATION)
 }
 
-function onCancel(event: Event) {
-  event.preventDefault()
-  closeDialog()
-}
-
-function onClick(event: MouseEvent) {
-  if (event.target === dialog.value) {
-    closeDialog()
+function onClickOverlay(event: MouseEvent) {
+  if (event.target === overlay.value) {
+    closeModal()
   }
-}
-
-function onClose() {
-  emit('close')
 }
 
 watch(
   () => props.open,
-  async (isOpen) => {
-    if (isOpen) {
+  async (isOpenProp) => {
+    if (isOpenProp) {
       await nextTick()
-      void openDialog()
+      void openModal()
     } else {
-      closeDialog()
+      closeModal()
     }
   },
   { immediate: true },
@@ -77,14 +70,14 @@ watch(
 </script>
 
 <template>
-  <dialog
-    ref="dialog"
+  <div
+    v-if="isOpen || isClosing"
+    ref="overlay"
     class="base-modal"
-    :data-blendy-to="blendyId || undefined"
-    role="document"
-    @cancel="onCancel"
-    @close="onClose"
-    @click="onClick"
+    :class="{ 'is-closing': isClosing }"
+    role="dialog"
+    aria-modal="true"
+    @click="onClickOverlay"
   >
     <article class="base-modal__card">
       <div class="base-modal__surface">
@@ -94,7 +87,7 @@ watch(
             class="base-modal__close"
             type="button"
             aria-label="Cerrar modal"
-            @click="closeDialog"
+            @click="closeModal"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -107,5 +100,5 @@ watch(
         </div>
       </div>
     </article>
-  </dialog>
+  </div>
 </template>

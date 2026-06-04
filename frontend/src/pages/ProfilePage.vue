@@ -1,20 +1,46 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import BaseButton from '../components/BaseButton.vue'
+import BaseCard from '../components/BaseCard.vue'
 import { useAuthSession } from '../composables/useAuthSession'
 
-const { token, isAuthenticated, clearSession } = useAuthSession()
+const { token, isAuthenticated, sessionPayload, clearSession } = useAuthSession()
 const router = useRouter()
 
 const sessionLabel = computed(() =>
   isAuthenticated.value ? 'Sesion activa' : 'Sesion inactiva',
 )
 
-const sessionHint = computed(() =>
-  isAuthenticated.value
-    ? 'Tu sesion esta protegida con un token de acceso. Puedes cerrarla cuando quieras.'
-    : 'Inicia sesion para acceder a tu inventario y a tus recetas guardadas.',
-)
+const displayName = computed(() => {
+  const payload = sessionPayload.value
+  const value = payload?.nombre ?? payload?.name
+  return typeof value === 'string' && value.trim() ? value : 'No disponible'
+})
+
+const displayEmail = computed(() => {
+  const payload = sessionPayload.value
+  const sub = typeof payload?.sub === 'string' ? payload.sub : ''
+  const email = typeof payload?.email === 'string' ? payload.email : ''
+  if (email.includes('@')) return email
+  if (sub.includes('@')) return sub
+  return 'No disponible'
+})
+
+const tokenPreview = computed(() => {
+  if (!token.value) return 'Sin token local'
+  return `${token.value.slice(0, 10)}...${token.value.slice(-6)}`
+})
+
+const expiryLabel = computed(() => {
+  const exp = sessionPayload.value?.exp
+  if (typeof exp !== 'number') return 'No informado'
+
+  return new Intl.DateTimeFormat('es-CO', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(exp * 1000))
+})
 
 function handleLogout() {
   clearSession()
@@ -24,101 +50,135 @@ function handleLogout() {
 
 <template>
   <article class="page page--profile" data-route="profile">
-    <section class="profile-card">
-      <p class="profile-card__eyebrow">Perfil</p>
-      <h1 class="profile-card__title">Tu cuenta</h1>
-      <p class="profile-card__hint">{{ sessionHint }}</p>
+    <BaseCard class="profile-card">
+      <div class="profile-card__topline">
+        <p class="profile-card__eyebrow">Perfil</p>
+        <span class="profile-card__status">{{ sessionLabel }}</span>
+      </div>
+
+      <h1 class="profile-card__title">Cuenta local</h1>
+      <p class="profile-card__hint">
+        Esta pantalla muestra solo lo que la sesion actual expone en el navegador.
+      </p>
 
       <dl class="profile-card__list">
         <div>
-          <dt>Estado</dt>
-          <dd>{{ sessionLabel }}</dd>
+          <dt>Nombre</dt>
+          <dd>{{ displayName }}</dd>
+        </div>
+        <div>
+          <dt>Correo</dt>
+          <dd>{{ displayEmail }}</dd>
+        </div>
+        <div>
+          <dt>Expira</dt>
+          <dd>{{ expiryLabel }}</dd>
         </div>
         <div>
           <dt>Token</dt>
-          <dd class="profile-card__token">
-            <span v-if="token">{{ token.slice(0, 12) }}…</span>
-            <span v-else>—</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Almacenamiento</dt>
-          <dd>Local (recetas_llm_token)</dd>
+          <dd class="profile-card__token">{{ tokenPreview }}</dd>
         </div>
       </dl>
 
-      <button
+      <BaseButton
         class="profile-card__logout"
         type="button"
         :disabled="!isAuthenticated"
         @click="handleLogout"
       >
         Cerrar sesion
-      </button>
-    </section>
+      </BaseButton>
+    </BaseCard>
   </article>
 </template>
 
 <style scoped>
 .page--profile {
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   margin: 0 auto;
   padding-top: 32px;
 }
 
 .profile-card {
-  border: 1px solid rgb(15 36 24 / 0.08);
-  border-radius: 32px;
-  padding: 36px;
-  background:
-    linear-gradient(160deg, rgb(254 253 248 / 0.96), rgb(244 241 232 / 0.92)),
-    var(--color-panel);
-  box-shadow: var(--shadow-card);
+  position: relative;
   display: grid;
   gap: 18px;
+  overflow: hidden;
+  padding: 36px;
+}
+
+.profile-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(38 116 81 / 0.14), transparent 34%),
+    linear-gradient(90deg, rgb(15 36 24 / 0.05), transparent 26%);
+}
+
+.profile-card > * {
+  position: relative;
+}
+
+.profile-card__topline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-card__eyebrow,
+.profile-card__status {
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .profile-card__eyebrow {
-  margin: 0;
   color: var(--color-accent);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+}
+
+.profile-card__status {
+  border-radius: var(--radius-button);
+  padding: 7px 12px;
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
 }
 
 .profile-card__title {
   margin: 0;
+  color: var(--color-ink);
   font-family: "Bricolage Grotesque", system-ui;
-  font-size: clamp(2.4rem, 5vw, 3.4rem);
-  font-weight: 700;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 760;
   line-height: 0.95;
   letter-spacing: -0.03em;
-  color: var(--color-ink);
 }
 
 .profile-card__hint {
+  max-width: 60ch;
   margin: 0;
   color: var(--color-muted);
   font-family: "DM Sans", system-ui;
   line-height: 1.55;
-  max-width: 60ch;
 }
 
 .profile-card__list {
   display: grid;
-  gap: 0;
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   padding: 0;
 }
 
 .profile-card__list > div {
   display: grid;
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: 160px minmax(0, 1fr);
   gap: 16px;
   align-items: center;
-  padding: 14px 0;
+  padding: 15px 0;
   border-bottom: 1px solid var(--color-line);
 }
 
@@ -130,58 +190,29 @@ function handleLogout() {
   color: var(--color-muted);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.74rem;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .profile-card__list dd {
+  min-width: 0;
   margin: 0;
   color: var(--color-ink);
   font-family: "DM Sans", system-ui;
-  font-weight: 600;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .profile-card__token {
+  color: var(--color-accent-strong);
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 0.9rem;
-  color: var(--color-accent-strong);
 }
 
 .profile-card__logout {
   justify-self: start;
-  margin-top: 12px;
-  min-height: 50px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: var(--radius-button);
-  color: var(--color-panel);
-  background:
-    linear-gradient(180deg, #3a8a64, var(--color-accent) 78%),
-    var(--color-accent);
-  font-family: "DM Sans", system-ui;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: -0.01em;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.18),
-    0 18px 40px -12px rgb(38 116 81 / 0.55);
-  transition:
-    transform 180ms var(--ease-out),
-    box-shadow 180ms ease;
-}
-
-.profile-card__logout:active {
-  transform: scale(0.97);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .profile-card__logout:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 24px 50px -12px rgb(38 116 81 / 0.6);
-  }
+  margin-top: 10px;
 }
 
 @media (max-width: 600px) {
@@ -189,9 +220,18 @@ function handleLogout() {
     padding: 24px;
   }
 
+  .profile-card__topline {
+    align-items: start;
+    flex-direction: column;
+  }
+
   .profile-card__list > div {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 5px;
+  }
+
+  .profile-card__logout {
+    width: 100%;
   }
 }
 </style>

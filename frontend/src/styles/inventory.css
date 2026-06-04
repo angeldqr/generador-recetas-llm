@@ -106,36 +106,25 @@
 }
 
 .ingredient-card {
-  min-height: 180px;
+  min-height: 160px;
   display: grid;
-  align-content: space-between;
-  gap: 22px;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 14px;
   border: 1px solid rgb(15 36 24 / 0.08);
   border-radius: 24px;
-  padding: 22px;
+  padding: 20px;
   background: var(--color-panel);
   box-shadow: var(--shadow-card);
   transition:
     transform 200ms var(--ease-out),
     box-shadow 200ms ease;
-}
-
-.ingredient-card > span {
-  width: fit-content;
-  border-radius: var(--radius-button);
-  padding: 7px 12px;
-  color: var(--color-accent-strong);
-  background: var(--color-accent-soft);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  will-change: transform, box-shadow;
 }
 
 .ingredient-card strong {
   font-family: "Bricolage Grotesque", system-ui;
-  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.025em;
@@ -143,6 +132,7 @@
 }
 
 .ingredient-card__actions {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

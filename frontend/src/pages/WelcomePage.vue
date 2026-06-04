@@ -85,11 +85,11 @@ function playEntrance() {
     )
     gsap.fromTo(
       '[data-reveal]',
-      { autoAlpha: 0, y: 20, filter: 'blur(5px)' },
+      { autoAlpha: 0, y: 20, scale: 0.98 },
       {
         autoAlpha: 1,
         y: 0,
-        filter: 'blur(0px)',
+        scale: 1,
         duration: 0.72,
         ease: 'power3.out',
         stagger: 0.08,
@@ -98,15 +98,38 @@ function playEntrance() {
     )
     gsap.fromTo(
       '.hero-proof',
-      { autoAlpha: 0, x: 28, filter: 'blur(6px)' },
+      { autoAlpha: 0, x: 28 },
       {
         autoAlpha: 1,
         x: 0,
-        filter: 'blur(0px)',
         duration: 0.9,
         ease: 'expo.out',
         delay: 0.62,
       },
+    )
+    gsap.fromTo(
+      '.cta--primary',
+      { autoAlpha: 0, scale: 0.92, y: 12 },
+      {
+        autoAlpha: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'back.out(1.7)',
+        delay: 0.55,
+      }
+    )
+    gsap.fromTo(
+      '.cta--ghost',
+      { autoAlpha: 0, scale: 0.92, y: 12 },
+      {
+        autoAlpha: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'back.out(1.7)',
+        delay: 0.65,
+      }
     )
   }, heroRoot)
 }
@@ -342,6 +365,7 @@ onMounted(() => {
 }
 
 .cta {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -353,17 +377,30 @@ onMounted(() => {
   font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: 0;
+  cursor: pointer;
+  overflow: hidden;
   transition:
-    background 220ms ease,
-    box-shadow 220ms ease,
-    color 220ms ease,
-    transform 220ms var(--ease-out);
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 280ms ease;
+  will-change: transform;
+}
+
+.cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 280ms ease;
+  pointer-events: none;
 }
 
 .cta__inner {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  z-index: 1;
 }
 
 .cta--primary {
@@ -376,6 +413,10 @@ onMounted(() => {
     0 24px 54px -16px rgb(38 116 81 / 0.56);
 }
 
+.cta--primary::before {
+  background: linear-gradient(180deg, #4a9a74, #2a7a54 78%);
+}
+
 .cta--ghost {
   color: var(--color-ink);
   background: rgb(254 253 248 / 0.78);
@@ -386,6 +427,10 @@ onMounted(() => {
   backdrop-filter: blur(14px);
 }
 
+.cta--ghost::before {
+  background: rgb(255 255 255 / 0.9);
+}
+
 .cta__arrow {
   display: inline-grid;
   width: 28px;
@@ -394,11 +439,12 @@ onMounted(() => {
   border-radius: 50%;
   color: inherit;
   background: rgb(255 255 255 / 0.22);
-  transition: transform 220ms var(--ease-out);
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .cta:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+  transition-duration: 120ms;
 }
 
 .hero-proof {
@@ -559,17 +605,31 @@ onMounted(() => {
 
 @media (hover: hover) and (pointer: fine) {
   .cta--primary:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px) scale(1.02);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.2),
       0 30px 66px -16px rgb(38 116 81 / 0.62);
   }
 
-  .cta--primary:hover .cta__arrow {
-    transform: translateX(3px);
+  .cta--primary:hover::before {
+    opacity: 1;
   }
 
-  .cta--ghost:hover,
+  .cta--primary:hover .cta__arrow {
+    transform: translateX(4px);
+  }
+
+  .cta--ghost:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow:
+      inset 0 0 0 1px rgb(38 116 81 / 0.2),
+      0 20px 40px -16px rgb(15 36 24 / 0.25);
+  }
+
+  .cta--ghost:hover::before {
+    opacity: 1;
+  }
+
   .flow-modal-close:hover {
     color: var(--color-accent-strong);
     background: var(--color-accent-soft);

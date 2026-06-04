@@ -35,6 +35,18 @@ def generate_recipe(
     try:
         recipe_data = generate_recipe_from_inventory(ingredientes)
 
+        # Si el LLM devolvio un error porque no puede crear receta
+        if "error" in recipe_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=recipe_data["error"]
+            )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error de validacion: {str(error)}"
+        )
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

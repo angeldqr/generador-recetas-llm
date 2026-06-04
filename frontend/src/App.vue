@@ -18,6 +18,8 @@ const showAuthModal = ref(false)
 const activeBlendyId = ref('')
 const authTargetStyle = ref<CSSProperties>({})
 
+
+
 async function handleOpenAuth(blendyId: string) {
   if (showAuthModal.value) return
   activeBlendyId.value = blendyId
@@ -59,6 +61,7 @@ function handleAuthenticated(token: string) {
 
 function handleLogout() {
   clearSession()
+  void router.push({ name: 'welcome' })
 }
 
 /* ── Auto-open from ?auth=true query ── */
@@ -104,17 +107,16 @@ function shouldReduceMotion() {
 function onPageEnter(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (shouldReduceMotion()) {
-    gsap.set(node, { autoAlpha: 1, y: 0, filter: 'blur(0px)' })
+    gsap.set(node, { autoAlpha: 1, y: 0 })
     done()
     return
   }
   gsap.fromTo(
     node,
-    { autoAlpha: 0, y: 14, filter: 'blur(2px)' },
+    { autoAlpha: 0, y: 16, scale: 0.985 },
     {
-      autoAlpha: 1, y: 0, filter: 'blur(0px)',
-      duration: 0.36, ease: 'power3.out',
-      clearProps: 'filter',
+      autoAlpha: 1, y: 0, scale: 1,
+      duration: 0.32, ease: 'power2.out',
       onComplete: done,
     },
   )
@@ -127,8 +129,8 @@ function onPageLeave(el: Element, done: () => void) {
     return
   }
   gsap.to(node, {
-    autoAlpha: 0, y: -8, filter: 'blur(2px)',
-    duration: 0.18, ease: 'power2.out',
+    autoAlpha: 0, y: -10, scale: 0.99,
+    duration: 0.2, ease: 'power2.in',
     onComplete: done,
   })
 }
@@ -142,7 +144,7 @@ function onPageLeave(el: Element, done: () => void) {
   >
     <main class="page" :class="{ 'page--welcome': isWelcome }" data-app-root>
       <RouterView v-slot="{ Component }">
-        <Transition :css="false" mode="out-in" @enter="onPageEnter" @leave="onPageLeave">
+        <Transition :css="false" appear @enter="onPageEnter" @leave="onPageLeave">
           <component :is="Component" :key="route.fullPath" @open-auth="handleOpenAuth" />
         </Transition>
       </RouterView>
@@ -180,6 +182,7 @@ function onPageLeave(el: Element, done: () => void) {
       </div>
     </template>
   </Teleport>
+
 </template>
 
 <style>
@@ -188,6 +191,12 @@ function onPageLeave(el: Element, done: () => void) {
   width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
   padding: 32px 0 64px;
+}
+
+/* Ensure pages are visible even if GSAP transition fails */
+.page > * {
+  opacity: 1;
+  visibility: visible;
 }
 
 .page--welcome {

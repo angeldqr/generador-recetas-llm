@@ -55,6 +55,7 @@
 html {
   min-width: 320px;
   background: var(--color-soft);
+  overflow-x: hidden;
 }
 
 body {
@@ -62,6 +63,7 @@ body {
   min-height: 100dvh;
   margin: 0;
   font-family: inherit;
+  overflow-x: hidden;
 }
 
 button,
@@ -76,6 +78,7 @@ button {
   border: 0;
   background: transparent;
   color: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled,
@@ -88,6 +91,14 @@ textarea:disabled {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(38 116 81 / 0.34);
+  outline-offset: 3px;
 }
 
 input,
@@ -177,5 +188,4 @@ textarea {
   text-transform: uppercase;
   margin: 0 0 8px;
 }
-
 

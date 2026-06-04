@@ -46,6 +46,12 @@
     box-shadow 180ms ease;
 }
 
+.brand,
+.nav__item,
+.header-action {
+  min-width: 0;
+}
+
 .brand {
   display: inline-flex;
   gap: 12px;
@@ -221,6 +227,8 @@
 
   .nav__item {
     flex: 1;
+    min-width: 0;
+    padding-inline: 12px;
   }
 }
 
@@ -260,5 +268,32 @@
 @media (max-width: 520px) {
   body.is-welcome-page .header-action {
     display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand {
+    padding-right: 12px;
+  }
+
+  .brand__mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .brand strong {
+    font-size: 0.98rem;
+  }
+
+  .nav {
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .nav__item {
+    min-height: 38px;
+    padding-inline: 8px;
+    font-size: 0.84rem;
   }
 }
